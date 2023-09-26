@@ -28,6 +28,7 @@ def ruidoRosa_voss(nrows, ncols=16):
         ruidoRosa_voss(10)
     """
     
+    
     array = np.full((nrows, ncols), np.nan)
     array[0, :] = np.random.random(ncols)
     array[:, 0] = np.random.random(nrows)
