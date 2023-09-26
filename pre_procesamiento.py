@@ -1,3 +1,13 @@
+import numpy as np
+from matplotlib import pyplot as plt
+import panda as pd
+def test_ruido_rosa(nrows, ncols):
+    audio = ruidoRosa_voss(nrows, ncols)
+    plt.plot(audio)
+    plt.show()
+    
+    
+
 def ruidoRosa_voss(nrows, ncols=16):
     """
     Genera ruido rosa utilizando el algoritmo de Voss-McCartney(https://www.dsprelated.com/showabstract/3933.php).
@@ -55,3 +65,7 @@ def ruidoRosa_voss(nrows, ncols=16):
     
     return total
 
+
+if __name__ == '__main__':
+    print(test_ruido_rosa(100, 10))
+    
