@@ -8,6 +8,7 @@ def test_ruido_rosa(nrows,ncols):
     plt.show()
     dominio = plot_temporal_domain(audio,44100)
     
+    
 tiempo = 10  
 
 def ruidoRosa_voss(duration, fs=44100):
