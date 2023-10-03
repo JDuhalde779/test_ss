@@ -98,6 +98,7 @@ def plot_temporal_domain(signal, fs= 44100):
     plt.grid(True)
     plt.show()
     
+    
 if __name__ == '__main__':
     print(test_ruido_rosa(tiempo,44100))
     
