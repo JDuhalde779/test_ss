@@ -1,6 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
-import panda as pd
+import pandas as pd
 def test_ruido_rosa(nrows, ncols):
     audio = ruidoRosa_voss(nrows, ncols)
     plt.plot(audio)
