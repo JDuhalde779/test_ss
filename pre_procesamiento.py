@@ -6,7 +6,7 @@ def test_ruido_rosa(nrows,ncols):
     audio = ruidoRosa_voss(nrows,ncols)
     plt.plot(audio)
     plt.show()
-    dominio = plot_temporal_domain(audio,100)
+    dominio = plot_temporal_domain(audio,44100)
     
 tiempo = 10  
 
@@ -98,5 +98,5 @@ def plot_temporal_domain(signal, fs= 44100):
     plt.show()
     
 if __name__ == '__main__':
-    print(test_ruido_rosa(tiempo,100))
+    print(test_ruido_rosa(tiempo,44100))
     
