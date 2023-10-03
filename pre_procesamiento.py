@@ -2,8 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pandas as pd
 import soundfile as sf
-def test_ruido_rosa(nrows,ncols):
-    audio = ruidoRosa_voss(nrows,ncols)
+
 def test_ruido_rosa(nrows, ncols):
     audio = ruidoRosa_voss(nrows, ncols)
     plt.plot(audio)
