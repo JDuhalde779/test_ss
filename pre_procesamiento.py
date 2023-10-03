@@ -6,7 +6,7 @@ def test_ruido_rosa(nrows, ncols):
     plt.plot(audio)
     plt.show()
     
-    
+ # nrows es el numero de samples mientras que ncols es el sample rate   
 
 def ruidoRosa_voss(nrows, ncols=16):
     """
@@ -15,7 +15,7 @@ def ruidoRosa_voss(nrows, ncols=16):
     .. Nota:: si 'ruidoRosa.wav' existe, este será sobreescrito
     
     Parametros
-    ----------
+    ----------  
     t : float
         Valor temporal en segundos, este determina la duración del ruido generado.
     rcols: int
@@ -67,5 +67,5 @@ def ruidoRosa_voss(nrows, ncols=16):
 
 
 if __name__ == '__main__':
-    print(test_ruido_rosa(100, 10))
-    
+    print(test_ruido_rosa(50, 200))
+
