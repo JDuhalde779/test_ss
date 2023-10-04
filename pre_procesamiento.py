@@ -1,75 +1,73 @@
 import numpy as np
-from matplotlib import pyplot as plt
-import pandas as pd
 import soundfile as sf
-
-def test_ruido_rosa(nrows, ncols):
-    audio = ruidoRosa_voss(nrows, ncols)
+import matplotlib.pyplot as plt
+import pandas as pd
+t=10
+def test_ruido_rosa(t,ncols=16,fs=44100):
+    audio = ruidoRosa_voss(t,ncols=16,fs=44100)
     plt.plot(audio)
     plt.show()
     dominio = plot_temporal_domain(audio,44100)
-    
-    
-tiempo = 10  
 
-def ruidoRosa_voss(duration, fs=44100):
+def ruidoRosa_voss(t,ncols=16,fs=44100):
     """
-    Genera ruido rosa utilizando el algoritmo de Voss-McCartney.
-
+    Genera ruido rosa utilizando el algoritmo de Voss-McCartney(https://www.dsprelated.com/showabstract/3933.php).
+    
+    .. Nota:: si 'ruidoRosa.wav' existe, este será sobreescrito
+    
     Parametros
     ----------
-    duration : float
-        Duración en segundos del ruido rosa a generar.
-    fs : int, optional
-        Frecuencia de muestreo en Hz de la señal. Por defecto, el valor es 44100 Hz.
-
-    Returns
-    -------
-    NumPy array
+    t : float
+        Valor temporal en segundos, este determina la duración del ruido generado.
+    rcols: int
+        Determina el número de fuentes a aleatorias a agregar.
+    fs: int
+        Frecuencia de muestreo en Hz de la señal. Por defecto el valor es 44100 Hz.
+    
+    returns: NumPy array
         Datos de la señal generada.
-
+    
     Ejemplo
     -------
-    Generar un archivo ".wav" de 10 segundos con ruido rosa a una frecuencia de muestreo de 44100 Hz.
-
+    Generar un `.wav` desde un numpy array de 10 segundos con ruido rosa a una 
+    frecuencia de muestreo de 44100 Hz.
+    
         import numpy as np
         import soundfile as sf
+        from scipy import signal
         
         ruidoRosa_voss(10)
     """
+    nrows=int(t*fs)
+    array = np.full((nrows, ncols), np.nan)
+    array[0, :] = np.random.random(ncols)
+    array[:, 0] = np.random.random(nrows)
     
-    # Calculate the number of samples based on duration and sample rate
-    num_samples = int(duration * fs)
-
-    array = np.full((num_samples, 1), np.nan)
-    array[0, 0] = np.random.random()
-    
-    # The number of changes is equal to the number of samples
-    n = num_samples
+    # el numero total de cambios es nrows
+    n = nrows
     cols = np.random.geometric(0.5, n)
-    cols[cols >= 1] = 0
-    rows = np.random.randint(num_samples, size=n)
+    cols[cols >= ncols] = 0
+    rows = np.random.randint(nrows, size=n)
     array[rows, cols] = np.random.random(n)
     
     df = pd.DataFrame(array)
     filled = df.fillna(method='ffill', axis=0)
     total = filled.sum(axis=1)
     
-    # Center the array at 0
+    ## Centrado de el array en 0
     total = total - total.mean()
     
-    # Normalize
-    max_abs_value = max(abs(max(total)), abs(min(total)))
-    total = total / max_abs_value
+    ## Normalizado
+    valor_max = max(abs(max(total)),abs(min(total)))
+    total = total / valor_max
     
-    # Ruta completa al escritorio (Desktop) 
-    desktop_path = "/Users/Educacion/Desktop/" #Se puede guardar en la carpeta deseada, aquí se utilizó como ejemplo la carpeta escritorio
-    
-    # Nombre del archivo de salida y ruta completa
-    output_audio_file = desktop_path + "RuidoRosa.wav"
     # Agregar generación de archivo de audio .wav
-    sf.write("RuidoRosa.wav", total, 44100)
-    # Guarda el nuevo array amplificado de numpy como archivo de audio   
+    sf.write('ruidoRosa.wav', total, fs)
+    
+    ## Plot de total en cantidad de muestras (t*fs)
+    plt.plot(total)
+
+    
     return total
 
 def plot_temporal_domain(signal, fs= 44100):
@@ -99,7 +97,5 @@ def plot_temporal_domain(signal, fs= 44100):
     plt.grid(True)
     plt.show()
     
-    
 if __name__ == '__main__':
-    print(test_ruido_rosa(tiempo,44100))
-    
+    print(test_ruido_rosa(t))
