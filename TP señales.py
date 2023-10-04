@@ -44,7 +44,7 @@ tiempo = np.linspace(0, duracion, int(duracion * frecuencia_muestreo), endpoint=
 seno = amplitud * np.sin(2 * np.pi * frecuencia * tiempo)
 
 
-valor_de_ampli=2
+valor_de_ampli= 2
 
 def test_ampli(seno,valor_de_ampli):
     testeo = ampli(seno, valor_de_ampli)
@@ -76,6 +76,8 @@ output_audio_file = desktop_path + "audio_amplificado.wav"
 sf.write(output_audio_file, ploteo, frecuencia_muestreo)
 
 print(f"El archivo {output_audio_file} se ha guardado en el escritorio.")
+
+
 
 
 
