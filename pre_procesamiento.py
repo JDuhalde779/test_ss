@@ -1,6 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import pandas as pd
+import soundfile as sf
 def test_ruido_rosa(nrows, ncols):
     audio = ruidoRosa_voss(nrows, ncols)
     plt.plot(audio)
@@ -62,7 +63,8 @@ def ruidoRosa_voss(nrows, ncols=16):
     total = total / valor_max
     
     # Agregar generación de archivo de audio .wav
-    
+    #lo guarda directamente en el direcorio users
+    sf.write('ruidoRosa.wav', total, fs)
     return total
 
 
