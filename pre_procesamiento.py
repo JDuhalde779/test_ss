@@ -11,9 +11,9 @@ t=10
 #devices = sd.query_devices()#
 # print(devices) #
 def test_ruido_rosa(t,ncols=16,fs=44100):
-    duration = 5  # Duración del sine sweep en segundos
-    start_freq = 20  # Frecuencia inicial en Hz
-    end_freq = 20000  # Frecuencia final en Hz
+    duracion = 5  # Duración del sine sweep en segundos
+    frec_comienzo = 20  # Frecuencia inicial en Hz
+    frec_final = 20000  # Frecuencia final en Hz
     fs = 44100
     
 
@@ -21,32 +21,19 @@ def test_ruido_rosa(t,ncols=16,fs=44100):
     audio = ruidoRosa_voss(t, ncols=16, fs=44100)
     plt.plot(audio)
     plt.show()
-    dominio = plot_temporal_domain(audio, 44100)
-    plot_frequency_response(audio, fs=44100)
+    dominio = plot_dominio_temporal(audio, 44100)
+    
 
     # Genera el Sine Sweep
-    sine_sweep = generate_log_sine_sweep_and_inverse(duration, start_freq, end_freq, fs=44100)
+    sine_sweep = generar_sine_sweep_y_inversa(duracion, frec_comienzo, frec_final, fs=44100)
     
     # Guarda el Sine Sweep como archivo de audio .wav
     sf.write('sine_sweep_log.wav', sine_sweep, fs)
 
-    signal = 'sine_sweep_log.wav'
-    # Registra el tiempo de inicio
-    inicio_grabacion = time.time()
+    señal = 'sine_sweep_log.wav'
+    
+    grabar_señal(señal, 1, 2, 5)
 
-    # Llamar a la función para grabar y reproducir audio
-    record_signal(signal, 25, 25, 5)
-
-    # Registra el tiempo de finalización
-    fin_reproduccion = time.time()
-
-    # Calcula la latencia en segundos
-    latencia_segundos = fin_reproduccion - inicio_grabacion
-
-    # Convierte la latencia a milisegundos
-    latencia_milisegundos = latencia_segundos * 1000
-
-    print(f'Latencia de la función grabar_reproducir_audio: {round(latencia_milisegundos, 2)} ms')
 
    
 def ruidoRosa_voss(t,ncols=16,fs=44100):
@@ -110,13 +97,13 @@ def ruidoRosa_voss(t,ncols=16,fs=44100):
     
     return total
 
-def plot_temporal_domain(signal, fs= 44100):
+def plot_dominio_temporal(señal, fs= 44100):
     """
     Muestra el dominio temporal de la señal.
 
     Parametros
     ----------
-    signal : NumPy array
+    señal : NumPy array
         Señal a mostrar en el dominio temporal.
     fs : int
         Frecuencia de muestreo en Hz de la señal.
@@ -125,12 +112,12 @@ def plot_temporal_domain(signal, fs= 44100):
     -------
     None
     """
-    # Calculate the time values
-    time = np.arange(len(signal)) / fs
+    # Calcula los valores de tiempo
+    tiempo = np.arange(len(señal)) / fs
 
-    # Create a new figure and plot the signal
+    # Crea una nueva figura y plotea la señal
     plt.figure(figsize=(10, 4))
-    plt.plot(time, signal)
+    plt.plot(tiempo, señal)
     plt.title('Dominio Temporal de la Señal')
     plt.xlabel('Tiempo (segundos)')
     plt.ylabel('Amplitud')
@@ -138,102 +125,74 @@ def plot_temporal_domain(signal, fs= 44100):
     plt.show()
 
 
-def plot_frequency_response(signal, fs=44100):
-    """
-    Plots the frequency response of a signal in decibels (dB).
-
-    Parameters:
-    signal (numpy array): The input signal.
-    fs (int): The sampling frequency of the signal.
-
-    Returns:
-    None
-    """
-    f, Pxx = welch(signal, fs=44100, nperseg=44100)
-    plt.figure(figsize=(10, 4))
-    plt.semilogx(f, 10 * np.log10(Pxx))
-    plt.title('Frequency Response of the Signal')
-    plt.xlabel('Frequency (Hz)')
-    plt.ylabel('Power/Frequency (dB/Hz)')
-    plt.grid(True)
-    plt.xlim([20, 20000])
-    plt.show()
-
 
 
 # Parámetros del sine sweep logarítmico
-duration = 5  # Duración en segundos
-start_freq = 20  # Frecuencia inicial en Hz
-end_freq = 20000  # Frecuencia final en Hz
+duracion = 5  # Duración en segundos
+frec_comienzo = 20  # Frecuencia inicial en Hz
+freq_final = 20000  # Frecuencia final en Hz
 fs = 44100  # Frecuencia de muestreo en Hz
 
-def generate_log_sine_sweep_and_inverse(duration, start_freq, end_freq, fs=44100):
+def generar_sine_sweep_y_inversa(duracion, frec_comienzo, freq_final, fs=44100):
     """
-    Generate a logarithmic sine sweep with a 3 dB/octave increase in amplitude
-    and its corresponding inverse filter.
+    Genera un sine sweep with logaritmico y su correspondiente filtro inverso.
 
-    Parameters:
-    duration (float): Duration of the sweep in seconds.
-    start_freq (float): Starting frequency in Hz.
-    end_freq (float): Ending frequency in Hz.
-    fs (int): Sampling frequency in Hz. Default is 44100 Hz.
+    Parametros:
+    duracion (float): Duracion del Sine Sweep en segundos.
+    frec_comienzo(float):frequencia de comienzo en Hz.
+    freq_final (float): frecuencia final en Hz.
+    fs (int):frecuencia de sampleo en Hz. Predeterminado en 44100 Hz.
 
     Returns:
-    tuple: A tuple containing the generated logarithmic sine sweep and its inverse filter.
+    tuple: Una tupla que contiene el sine sweep logaritmico generado
     """
-    t = np.linspace(0, duration, int(fs * duration), endpoint=False)
-    omega_start = 2 * np.pi * start_freq
-    omega_end = 2 * np.pi * end_freq
+    t = np.linspace(0, duracion, int(fs * duracion), endpoint=False)
+    
 
-    # Calculate the desired amplitude change per octave (3 dB/octave)
-    amplitude_change_per_octave = 3.0  # 3 dB/octave
+    # Calcula el escalamiento de amplitud para cada fercuencia
+    freqs = np.exp(np.linspace(np.log(frec_comienzo), np.log(freq_final), len(t)))
 
-    # Calculate the amplitude scaling factor for each frequency
-    freqs = np.exp(np.linspace(np.log(start_freq), np.log(end_freq), len(t)))
-    amplitude_scale = 10 ** (amplitude_change_per_octave * np.log2(freqs / start_freq) / 20)
-
-    # Generate the sine sweep with scaling
+    # Genera el Sine Sweep 
     sine_sweep = np.sin(np.cumsum(2 * np.pi * freqs / fs))
-    sine_sweep *= amplitude_scale
 
-    # Normalize the sine sweep
+    # Normaliza el Sine Sweep
     sine_sweep /= np.max(np.abs(sine_sweep))
 
-    # Modulate w(t)
-    K = end_freq - start_freq
-    L = duration
-    w_t = (K / L) * np.exp(t / L)
 
-    # Calculate the instantaneous frequency m(t)
-    m_t = (start_freq / (2 * np.pi)) / w_t
+    t_swipe_arange = np.arange(0, duracion*fs)/fs  # Arreglo de muestreos
+    R = np.log(freq_final/frec_comienzo)  # Ratio del Sweep
+    K = duracion*2*np.pi*frec_comienzo/R
+    L = duracion/R
+    w = (K/L)*np.exp(t_swipe_arange/L)
+    m = frec_comienzo/w
 
-    # Calculate the inverse filter k(t)
+    # Calcula el filtro inverso  k(t)
     x_t = sine_sweep
-    k_t = m_t * x_t[::-1]  # Temporal inversion of x(t)
+    k_t = m * x_t[::-1]  #  Inversion temporal de x(t)
 
-    # Normalize the inverse filter
+    # Normaliza el Filtro Inverso 
     k_t /= np.max(np.abs(k_t))
     
-    # Calculate the time axis in seconds
-    time_seconds = np.linspace(0, duration, len(sine_sweep), endpoint=False)    
+    # Calcula el eje de tiempo  en segundos
+    tiempo_segundos = np.linspace(0, duracion, len(sine_sweep), endpoint=False)    
 
-    # Plot the generated sine sweep
+    # Plotea el Sine Sweep generado
     plt.figure(figsize=(12, 4))
     plt.subplot(121)
-    plt.plot(time_seconds, sine_sweep)
-    plt.title('Logarithmic Sine Sweep with 3 dB/octave Increase')
-    plt.xlabel('Time (seconds)')
-    plt.ylabel('Amplitude')
+    plt.plot(tiempo_segundos, sine_sweep)
+    plt.title('Sine Sweep logaritmico')
+    plt.xlabel('Tiempo (seconds)')
+    plt.ylabel('Amplitud')
     plt.grid(True)
     plt.tight_layout()
     plt.show()
 
-    # Plot the inverse filter
+    # Plotea el Filtro Inverso 
     plt.figure(figsize=(10, 4))
     plt.plot(t, k_t)
-    plt.title('Inverse Filter k(t)')
-    plt.xlabel('Time (seconds)')
-    plt.ylabel('Amplitude')
+    plt.title('Filtro Inverso k(t)')
+    plt.xlabel('Tiempo (seconds)')
+    plt.ylabel('Amplitud')
     plt.grid(True)
     plt.show()
     
@@ -242,7 +201,7 @@ def generate_log_sine_sweep_and_inverse(duration, start_freq, end_freq, fs=44100
    
     return sine_sweep
 
-def record_signal(signal, input_device, output_device, duration):
+def grabar_señal(señal, disp_entrada, disp_salida, duracion):
     """
     Reproducción y grabación de una señal en formato ".wav" en simultáneo.
 
@@ -250,13 +209,13 @@ def record_signal(signal, input_device, output_device, duration):
     ----------
     signal: Archivo ".wav"
 
-    input_device: int
+    disp_entrada: int
         Dispositivo de grabación de audio.
     
-    output_device: int
+    disp_salida: int
         Dispositivo de reproducción de audio.
 
-    duration: 
+    duracion: 
         Tiempo de grabación de la señal.
 
     Para ver el listado de dispositivos de audio: 
@@ -270,22 +229,22 @@ def record_signal(signal, input_device, output_device, duration):
     import soundfile as sf
     import sounddevice as sd
     
-    signal = 'SineSweepLog.wav'
-    input_device = 1
-    output_device = 9
-    record_signal(signal, input_device, output_device)
+    señal = 'SineSweepLog.wav'
+    disp_entrada = 1
+    disp_salida = 9
+    grabar_señal(señal, disp_entrada, disp_salida)
     
     """
     
     # Selección de dispositivos de audio
-    sd.default.device = input_device, output_device
+    sd.default.device = disp_entrada, disp_salida
     # Reproducción de la señal y grabación en simultáneo   
-    data, fs = sf.read(signal, dtype='float32')
-    samples_rec = duration*fs
+    data, fs = sf.read(señal, dtype='float32')
+    samples_rec = duracion*fs
     val = data[0:samples_rec]
-    signal_recording = sd.playrec(val, fs, channels=1)
+    grabacion_señal = sd.playrec(val, fs, channels=1)
     sd.wait()
-    sf.write('signal_recording.wav', signal_recording,fs )  # Guardo el archivo .wav
+    sf.write('signal_recording.wav', grabacion_señal,fs )  # Guardo el archivo .wav
     
 
 test_ruido_rosa(t)
