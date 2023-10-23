@@ -1,4 +1,8 @@
 import os
+import numpy as np
+import wave
+from pydub import AudioSegment
+from pydub.playback import play
 
 def cargar_archivos_de_audio(directorio):
     archivos_de_audio = []
@@ -37,3 +41,53 @@ if 0 <= indice_archivo < len(archivos_audio):
     # Cargar el archivo, procesarlo, etc.
 else:
     print("El índice seleccionado está fuera de rango. Debe estar en el rango [0, {}].".format(len(archivos_audio) - 1))
+
+
+
+import numpy as np
+from pydub import AudioSegment
+from pydub.playback import play
+
+def sintetizar_respuesta_al_impulso(T60, frecuencias_centrales, duracion=5.0, nombre_archivo="respuesta_impulso.wav"):
+    fs = 44100  # Frecuencia de muestreo (puedes ajustarla según tus necesidades)
+    num_muestras = int(fs * duracion)
+    tiempo = np.linspace(0, duracion, num_muestras, endpoint=False)
+    
+    respuesta_impulso = np.zeros(num_muestras)
+    
+    for i in range(len(frecuencias_centrales)):
+        fi = frecuencias_centrales[i]
+        Ti60i = T60[i]
+        tau_i = -np.log(10 ** -3) / Ti60i
+        
+        # Generar una señal de respuesta al impulso con decaimiento exponencial
+        yi = np.exp(-tiempo / tau_i) * np.cos(2 * np.pi * fi * tiempo)
+        
+        respuesta_impulso += yi
+    
+    respuesta_impulso /= np.max(np.abs(respuesta_impulso))
+    
+    # Escalar la respuesta al impulso a un rango adecuado para exportarla como audio
+    respuesta_impulso *= 32767.0  # Valor máximo para audio de 16 bits
+    
+    respuesta_impulso = respuesta_impulso.astype(np.int16)
+    
+    # Crear un archivo WAV con formato de 16 bits y PCM
+    AudioSegment(
+        respuesta_impulso.tobytes(),
+        frame_rate=fs,
+        sample_width=2,
+        channels=1
+    ).export(nombre_archivo, format="wav")
+
+# Ejemplo de uso
+T60 = [3.86, 2.86, 2.59]
+frecuencias_centrales = [125, 250, 500]
+duracion = 5.0
+nombre_archivo = "respuesta_impulso.wav"
+
+sintetizar_respuesta_al_impulso(T60, frecuencias_centrales, duracion, nombre_archivo)
+
+# Reproducir la respuesta al impulso generada
+play(AudioSegment.from_wav(nombre_archivo))
+
