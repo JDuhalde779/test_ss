@@ -16,7 +16,7 @@ def cargar_archivos_de_audio(directorio):
     return archivos_de_audio
 
 # Directorio que contiene los archivos de audio .wav
-directorio_audio = "/Users/duhal/Escritorio/Audios test fc"
+directorio_audio = "/Users/Hugo/Desktop/Audios.waw"
 
 # Carga los archivos de audio
 archivos_audio = cargar_archivos_de_audio(directorio_audio)
