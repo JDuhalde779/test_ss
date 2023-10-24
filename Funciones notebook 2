@@ -20,10 +20,17 @@ def cargar_archivos_de_audio(directorio):
     return archivos_de_audio
 
 # Directorio que contiene los archivos de audio .wav
-directorio_audio = "/Users/Hugo/Desktop/Audios.waw"
+# Utiliza una ruta relativa desde el directorio donde se encuentra este script
+directorio_audio = "carpeta_de_audios"
+
+# Obtiene el directorio actual del script
+directorio_actual = os.path.dirname(os.path.abspath(__file__))
+
+# Combina el directorio actual con el directorio de audio
+directorio_completo = os.path.join(directorio_actual, directorio_audio)
 
 # Carga los archivos de audio
-archivos_audio = cargar_archivos_de_audio(directorio_audio)
+archivos_audio = cargar_archivos_de_audio(directorio_completo)
 
 # Imprime la lista de archivos
 for i, archivo in enumerate(archivos_audio):
@@ -44,9 +51,6 @@ else:
 
 
 
-import numpy as np
-from pydub import AudioSegment
-from pydub.playback import play
 
 def sintetizar_respuesta_al_impulso(T60, frecuencias_centrales, duracion=5.0, nombre_archivo="respuesta_impulso.wav"):
     fs = 44100  # Frecuencia de muestreo (puedes ajustarla según tus necesidades)

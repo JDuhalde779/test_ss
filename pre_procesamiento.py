@@ -8,8 +8,8 @@ import time
 
 t=10
 # Ver la lista de dispositivos de audio
-#devices = sd.query_devices()#
-# print(devices) #
+#devices = sd.query_devices()
+#print(devices) 
 def test_ruido_rosa(t,ncols=16,fs=44100):
     duracion = 5  # Duración del sine sweep en segundos
     frec_comienzo = 20  # Frecuencia inicial en Hz
@@ -135,7 +135,7 @@ fs = 44100  # Frecuencia de muestreo en Hz
 
 def generar_sine_sweep_y_inversa(duracion, frec_comienzo, freq_final, fs=44100):
     """
-    Genera un sine sweep with logaritmico y su correspondiente filtro inverso.
+    Genera un sine sweep logaritmico y su correspondiente filtro inverso.
 
     Parametros:
     duracion (float): Duracion del Sine Sweep en segundos.
@@ -245,6 +245,25 @@ def grabar_señal(señal, disp_entrada, disp_salida, duracion):
     grabacion_señal = sd.playrec(val, fs, channels=1)
     sd.wait()
     sf.write('signal_recording.wav', grabacion_señal,fs )  # Guardo el archivo .wav
-    
+    return grabar_señal
+
+import time 
+# Registra el tiempo de inicio
+inicio = time.time()
+
+ # Llamar a la función para grabar y reproducir audio
+grabar_señal(signal, 1, 2, 5)
+
+# Registra el tiempo de finalización
+final = time.time()
+
+# Calcula la latencia en segundos
+latencia = final - inicio
+
+# Convierte la latencia a milisegundos
+latencia_milisegundos = latencia * 1000
+
+print(f'Latencia de la función grabar_reproducir_audio: {round(latencia_milisegundos,2)} ms')
+  
 
 test_ruido_rosa(t)
