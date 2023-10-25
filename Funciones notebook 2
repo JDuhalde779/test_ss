@@ -2,6 +2,7 @@ import os
 import numpy as np
 import wave
 from pydub import AudioSegment
+from scipy.signal import find_peaks
 from pydub.playback import play
 
 def cargar_archivos_de_audio(directorio):
@@ -52,7 +53,7 @@ else:
 
 
 
-def sintetizar_respuesta_al_impulso(T60, frecuencias_centrales, duracion=5.0, nombre_archivo="respuesta_impulso.wav"):
+def sintetizar_respuesta_al_impulso(T60, frecuencias_centrales, duracion, nombre_archivo="respuesta_impulso.wav"):
     fs = 44100  # Frecuencia de muestreo (puedes ajustarla según tus necesidades)
     num_muestras = int(fs * duracion)
     tiempo = np.linspace(0, duracion, num_muestras, endpoint=False)
@@ -85,13 +86,18 @@ def sintetizar_respuesta_al_impulso(T60, frecuencias_centrales, duracion=5.0, no
     ).export(nombre_archivo, format="wav")
 
 # Ejemplo de uso
-T60 = [3.86, 2.86, 2.59]
-frecuencias_centrales = [125, 250, 500]
-duracion = 5.0
+T60 = [3.86, 2.86, 2.59, 2.61]
+frecuencias_centrales = [125, 250, 500, 1000]
+duracion = max(T60) + 5
 nombre_archivo = "respuesta_impulso.wav"
 
 sintetizar_respuesta_al_impulso(T60, frecuencias_centrales, duracion, nombre_archivo)
 
 # Reproducir la respuesta al impulso generada
 play(AudioSegment.from_wav(nombre_archivo))
+
+
+
+
+
 
