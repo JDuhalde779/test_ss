@@ -4,7 +4,10 @@ import wave
 from pydub import AudioSegment
 from scipy.signal import find_peaks
 from pydub.playback import play
+import soundfile as sf
 
+#Constantes
+fs = 44100
 def cargar_archivos_de_audio(directorio):
     archivos_de_audio = []
 
@@ -97,7 +100,57 @@ sintetizar_respuesta_al_impulso(T60, frecuencias_centrales, duracion, nombre_arc
 play(AudioSegment.from_wav(nombre_archivo))
 
 
+def obtencion_rta_al_impulso():
+    # Cargar los archivos de audio 
+    sine_sweep_grabado = "signal_recording.wav" #sine sweep grabado
+    y_t, fs = sf.read(sine_sweep_grabado)
+    filtro_inv = "filtro_inverso.wav"
+    k_t, fs = sf.read(filtro_inv)
 
+    # Calcular la Transformada de Fourier
+    Y_jw = np.fft.fft(y_t)
+    K_jw = np.fft.fft(k_t)
+    H_jw = Y_jw * K_jw
+    # Calcular la antitransformada de Fourier
+    h_t = np.fft.ifft(H_jw)
+    h_t = h_t.astype('float32')
+    sf.write("RI_recinto.wav", h_t, 44100)
+
+    return h_t
+
+# Llamar a la función
+obtencion_rta_al_impulso()
+
+
+
+def apply_iec61260_filters(audio_signal, sample_rate=44100):
+    # Lista de frecuencias centrales según la norma IEC61260 para octavas y tercios de octava
+    center_frequencies = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000]
+
+    filtered_signals = []
+
+    for center_frequency in center_frequencies:
+        G = 1.0 / 2.0  # Octava - G = 1.0/2.0 / 1/3 de Octava - G=1.0/6.0
+        factor = np.power(2, G)
+        center_frequency_hz = center_frequency
+
+        lower_cutoff_frequency_hz = center_frequency_hz / factor
+        upper_cutoff_frequency_hz = center_frequency_hz * factor
+
+        # Extraer coeficientes del filtro
+        b, a = signal.iirfilter(4, [2 * np.pi * lower_cutoff_frequency_hz, 2 * np.pi * upper_cutoff_frequency_hz],
+                                rs=60, btype='band', analog=True,
+                                ftype='butter')
+
+        # Para aplicar el filtro de manera más óptima
+        sos = signal.iirfilter(4, [lower_cutoff_frequency_hz, upper_cutoff_frequency_hz],
+                               rs=60, btype='band', analog=False,
+                               ftype='butter', fs=sample_rate, output='sos')
+        filtered_signal = signal.sosfilt(sos, audio_signal)
+
+        filtered_signals.append(filtered_signal)
+
+    return filtered_signals
 
 
 
