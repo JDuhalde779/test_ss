@@ -100,11 +100,13 @@ nombre_archivo = "respuesta_impulso.wav"
 #play(AudioSegment.from_wav(nombre_archivo))
 
 
+
+
 def obtencion_rta_al_impulso():
-    # Cargar los archivos de audio 
-    sine_sweep_grabado = "signal_recording.wav" #sine sweep grabado
-    y_t, fs = sf.read(sine_sweep_grabado)
-    filtro_inv = "filtro_inverso.wav"
+    sine_sweep = "sine_sweepDR.wav"
+    filtro_inv = "filtro_inversoDR.wav"
+
+    y_t, fs = sf.read(sine_sweep)
     k_t, fs = sf.read(filtro_inv)
 
     # Calcular la Transformada de Fourier

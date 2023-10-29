@@ -248,6 +248,4 @@ def grabar_señal(señal, disp_entrada, disp_salida, duracion):
     return grabar_señal
 
 
-  
-
 test_ruido_rosa(t)
