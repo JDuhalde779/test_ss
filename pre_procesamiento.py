@@ -247,23 +247,7 @@ def grabar_señal(señal, disp_entrada, disp_salida, duracion):
     sf.write('signal_recording.wav', grabacion_señal,fs )  # Guardo el archivo .wav
     return grabar_señal
 
-import time 
-# Registra el tiempo de inicio
-inicio = time.time()
 
- # Llamar a la función para grabar y reproducir audio
-grabar_señal(signal, 1, 2, 5)
-
-# Registra el tiempo de finalización
-final = time.time()
-
-# Calcula la latencia en segundos
-latencia = final - inicio
-
-# Convierte la latencia a milisegundos
-latencia_milisegundos = latencia * 1000
-
-print(f'Latencia de la función grabar_reproducir_audio: {round(latencia_milisegundos,2)} ms')
   
 
 test_ruido_rosa(t)

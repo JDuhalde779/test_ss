@@ -94,10 +94,10 @@ frecuencias_centrales = [125, 250, 500, 1000]
 duracion = max(T60) + 5
 nombre_archivo = "respuesta_impulso.wav"
 
-sintetizar_respuesta_al_impulso(T60, frecuencias_centrales, duracion, nombre_archivo)
+#sintetizar_respuesta_al_impulso(T60, frecuencias_centrales, duracion, nombre_archivo)
 
 # Reproducir la respuesta al impulso generada
-play(AudioSegment.from_wav(nombre_archivo))
+#play(AudioSegment.from_wav(nombre_archivo))
 
 
 def obtencion_rta_al_impulso():
@@ -138,15 +138,15 @@ def apply_iec61260_filters(audio_signal, sample_rate=44100):
         upper_cutoff_frequency_hz = center_frequency_hz * factor
 
         # Extraer coeficientes del filtro
-        b, a = signal.iirfilter(4, [2 * np.pi * lower_cutoff_frequency_hz, 2 * np.pi * upper_cutoff_frequency_hz],
+        b, a = audio_signal.iirfilter(4, [2 * np.pi * lower_cutoff_frequency_hz, 2 * np.pi * upper_cutoff_frequency_hz],
                                 rs=60, btype='band', analog=True,
                                 ftype='butter')
 
         # Para aplicar el filtro de manera más óptima
-        sos = signal.iirfilter(4, [lower_cutoff_frequency_hz, upper_cutoff_frequency_hz],
+        sos = audio_signal.iirfilter(4, [lower_cutoff_frequency_hz, upper_cutoff_frequency_hz],
                                rs=60, btype='band', analog=False,
                                ftype='butter', fs=sample_rate, output='sos')
-        filtered_signal = signal.sosfilt(sos, audio_signal)
+        filtered_signal = audio_signal.sosfilt(sos, audio_signal)
 
         filtered_signals.append(filtered_signal)
 
