@@ -100,11 +100,10 @@ nombre_archivo = "respuesta_impulso.wav"
 #play(AudioSegment.from_wav(nombre_archivo))
 
 
+sine_sweep = "signal_recording.wav"
+filtro_inv = "filtro_inverso.wav"
 
-
-def obtencion_rta_al_impulso():
-    sine_sweep = "sine_sweepDR.wav"
-    filtro_inv = "filtro_inversoDR.wav"
+def obtencion_rta_al_impulso(sine_sweep, filtro_inv):
 
     y_t, fs = sf.read(sine_sweep)
     k_t, fs = sf.read(filtro_inv)
@@ -121,7 +120,7 @@ def obtencion_rta_al_impulso():
     return h_t
 
 # Llamar a la función
-obtencion_rta_al_impulso()
+obtencion_rta_al_impulso(sine_sweep, filtro_inv)
 
 
 
