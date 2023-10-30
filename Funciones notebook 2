@@ -28,14 +28,8 @@ def cargar_archivos_de_audio(directorio):
 # Utiliza una ruta relativa desde el directorio donde se encuentra este script
 directorio_audio = "carpeta_de_audios"
 
-# Obtiene el directorio actual del script
-directorio_actual = os.path.dirname(os.path.abspath(__file__))
-
-# Combina el directorio actual con el directorio de audio
-directorio_completo = os.path.join(directorio_actual, directorio_audio)
-
 # Carga los archivos de audio
-archivos_audio = cargar_archivos_de_audio(directorio_completo)
+archivos_audio = cargar_archivos_de_audio(directorio_audio)
 
 # Imprime la lista de archivos
 for i, archivo in enumerate(archivos_audio):
@@ -101,8 +95,8 @@ nombre_archivo = "respuesta_impulso.wav"
 #play(AudioSegment.from_wav(nombre_archivo))
 
 
-sine_sweep = "sine_sweepDR.wav"
-filtro_inv = "filtro_inversoDR.wav"
+sine_sweep = "signal_recording.wav"
+filtro_inv = "filtro_inverso.wav"
 
 def obtencion_rta_al_impulso(sine_sweep, filtro_inv):
     y_t, fs = sf.read(sine_sweep)

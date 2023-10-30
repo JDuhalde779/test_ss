@@ -3,6 +3,46 @@ import scipy.io.wavfile as wav
 import soundfile as sf
 from scipy.fft import fft, ifft
 
+import os
+
+def cargar_archivos_de_audio(directorio):
+    archivos_de_audio = []
+
+    # Verifica si el directorio existe
+    if not os.path.exists(directorio):
+        print(f"El directorio '{directorio}' no existe.")
+        return archivos_de_audio
+
+    # Itera sobre los archivos en el directorio
+    for archivo in os.listdir(directorio):
+        if archivo.endswith(".wav"):
+            archivos_de_audio.append(os.path.join(directorio, archivo))
+
+    return archivos_de_audio
+
+# Directorio que contiene los archivos de audio .wav
+# Utiliza una ruta relativa desde el directorio donde se encuentra este script
+directorio_audio = "carpeta_de_audios"
+
+# Carga los archivos de audio
+archivos_audio = cargar_archivos_de_audio(directorio_audio)
+
+# Imprime la lista de archivos
+for i, archivo in enumerate(archivos_audio):
+    print(f"{i}: {archivo}")
+
+# Elije el índice del archivo que deseas cargar
+indice_archivo = 0  # Cambia este valor al índice del archivo que deseas cargar
+
+if 0 <= indice_archivo < len(archivos_audio):
+    archivo_seleccionado = archivos_audio[indice_archivo]
+    print(f"Cargando archivo: {archivo_seleccionado}")
+
+    # Llama a la función con el archivo seleccionado
+    # Luego puedes realizar operaciones con el archivo, por ejemplo, cargarlo y procesarlo
+    # Cargar el archivo, procesarlo, etc.
+else:
+    print("El índice seleccionado está fuera de rango. Debe estar en el rango [0, {}].".format(len(archivos_audio) - 1))
 
 
 def generar_filtro_inverso(input_file, output_file, fs=44100):
