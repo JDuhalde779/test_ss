@@ -59,7 +59,7 @@ def generar_respuesta_al_impulso(T60_lista, frecuencias_lista, duracion, archivo
     wav.write(archivo_salida, fs, respuesta_impulso.astype(np.float32))
 
 # Ejemplo de uso de la función
-T60_lista = [0.5, 0.8, 1.2]  # Lista de T60 para cada frecuencia
+T60_lista = [2.59, 2.61, 2.47]  # Lista de T60 para cada frecuencia
 frecuencias_lista = [500, 1000, 2000]  # Lista de frecuencias centrales
 duracion = max(T60_lista) + 2  # Duración en segundos
 nombre_archivo = 'respuesta_al_impulso.wav'  # Nombre del archivo de salida
