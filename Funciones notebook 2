@@ -5,6 +5,7 @@ from pydub import AudioSegment
 from scipy.signal import find_peaks
 from pydub.playback import play
 import soundfile as sf
+import scipy.io.wavfile as wav
 
 #Constantes
 fs = 44100
@@ -100,8 +101,8 @@ nombre_archivo = "respuesta_impulso.wav"
 #play(AudioSegment.from_wav(nombre_archivo))
 
 
-sine_sweep = "signal_recording.wav"
-filtro_inv = "filtro_inverso.wav"
+sine_sweep = "sine_sweepDR.wav"
+filtro_inv = "filtro_inversoDR.wav"
 
 def obtencion_rta_al_impulso(sine_sweep, filtro_inv):
 
@@ -113,7 +114,7 @@ def obtencion_rta_al_impulso(sine_sweep, filtro_inv):
     K_jw = np.fft.fft(k_t)
     H_jw = Y_jw * K_jw
     # Calcular la antitransformada de Fourier
-    h_t = np.fft.ifft(H_jw)
+    h_t = np.fft.ifft(H_jw).real
     h_t = h_t.astype('float32')
     sf.write("RI_recinto.wav", h_t, 44100)
 
