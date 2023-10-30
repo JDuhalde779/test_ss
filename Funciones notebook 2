@@ -70,7 +70,7 @@ def sintetizar_respuesta_al_impulso(T60, frecuencias_centrales, duracion, nombre
         tau_i = -np.log(10 ** -3) / Ti60i
         
         # Generar una señal de respuesta al impulso con decaimiento exponencial
-        yi = np.exp(-tiempo / tau_i) * np.cos(2 * np.pi * fi * tiempo)
+        yi = np.exp(-tiempo * tau_i) * np.cos(2 * np.pi * fi * tiempo)  #modifique el -tiempo/tau_i por una multiplicación
         
         respuesta_impulso += yi
     
@@ -105,17 +105,27 @@ sine_sweep = "sine_sweepDR.wav"
 filtro_inv = "filtro_inversoDR.wav"
 
 def obtencion_rta_al_impulso(sine_sweep, filtro_inv):
-
     y_t, fs = sf.read(sine_sweep)
     k_t, fs = sf.read(filtro_inv)
+
+    # Asegúrate de que ambas señales tengan la misma longitud
+    min_length = min(len(y_t), len(k_t))
+    y_t = y_t[:min_length]
+    k_t = k_t[:min_length]
 
     # Calcular la Transformada de Fourier
     Y_jw = np.fft.fft(y_t)
     K_jw = np.fft.fft(k_t)
     H_jw = Y_jw * K_jw
+
     # Calcular la antitransformada de Fourier
     h_t = np.fft.ifft(H_jw).real
     h_t = h_t.astype('float32')
+
+    # Asegúrate de que h_t tenga la misma longitud que y_t y k_t
+    h_t = h_t[:min_length]
+
+    # Guarda la respuesta al impulso
     sf.write("RI_recinto.wav", h_t, 44100)
 
     return h_t
@@ -125,7 +135,7 @@ obtencion_rta_al_impulso(sine_sweep, filtro_inv)
 
 
 
-def apply_iec61260_filters(audio_signal, sample_rate=44100):
+def iec61260_filtros(audio_signal, sample_rate=44100):
     # Lista de frecuencias centrales según la norma IEC61260 para octavas y tercios de octava
     center_frequencies = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000]
 
@@ -153,6 +163,8 @@ def apply_iec61260_filters(audio_signal, sample_rate=44100):
         filtered_signals.append(filtered_signal)
 
     return filtered_signals
+#Llamar a la función con alguna RI generada anteriormente.
+#iec61260_filtros(audio_signal=alguna RI, sample_rate=44100):
 
 def convertir_a_escala_logaritmica(ri):
     """
@@ -172,3 +184,5 @@ def convertir_a_escala_logaritmica(ri):
 
     return signal_log
 
+#Llamar a la función con alguna de las señales generadas anteriormente.
+#convertir_a_escala_logaritmica(ri=alguna RI)
