@@ -68,7 +68,7 @@ def generar_filtro_inverso(input_file, output_file, fs=44100):
     wav.write(output_file, fs, k_t.astype(np.float32))
 
 # Uso de la función
-input_file = 'sine_sweepDR.wav'  # Nombre del archivo .wav del sine sweep
+input_file = 'Toma_n1_c-03.wav'  # Nombre del archivo .wav del sine sweep
 output_file = 'filtro_inversoDR.wav'  # Nombre del archivo de salida del filtro inverso
 
 #generar_filtro_inverso(input_file, output_file)
@@ -135,9 +135,9 @@ def respuesta_al_impulso(sine_sweep_wav, filtro_inverso_wav, salida_wav):
     sf.write(salida_wav, respuesta_impulso, fs_sine_sweep)
 
 # Ejemplo de uso de la función
-sine_sweep_wav = 'sine_sweepDR.wav'  # Archivo .wav del sine sweep logarítmico
+sine_sweep_wav = 'Toma_n1_c-03.wav'  # Archivo .wav del sine sweep logarítmico
 filtro_inverso_wav = 'filtro_inversoDR.wav'  # Archivo .wav del filtro inverso
-salida_wav = 'respuesta_al_impulsoObtenida.wav'  # Nombre del archivo de salida de la respuesta al impulso
+salida_wav = 'respuesta_al_impulsoDESCARGADOS.wav'  # Nombre del archivo de salida de la respuesta al impulso
 
 respuesta_al_impulso(sine_sweep_wav, filtro_inverso_wav, salida_wav)
 
