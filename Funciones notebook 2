@@ -160,23 +160,28 @@ def iec61260_filtros(audio_signal, sample_rate=44100):
 #Llamar a la función con alguna RI generada anteriormente.
 #iec61260_filtros(audio_signal=alguna RI, sample_rate=44100):
 
-def convertir_a_escala_logaritmica(ri):
+def convertir_audio_a_escala_logaritmica(señal_audio):
     """
-    Convierte la respuesta al impulso (RI) a escala logarítmica.
+    Convierte un archivo de audio en escala logarítmica y devuelve el resultado como un array.
 
     Parámetros:
-    ri (numpy.ndarray): La respuesta al impulso a convertir.
+    señal_audio (str): Ruta al archivo de audio de entrada (formato .wav).
 
     Retorna:
-    numpy.ndarray: La señal resultante en escala logarítmica.
+    numpy.ndarray: El array de la señal en escala logarítmica.
     """
-    # Calcula el valor máximo de la RI
-    max_ri = np.max(ri)
+    # Cargar el archivo de audio .wav
+    tasa_muestreo, audio_data = wavfile.read(señal_audio)
 
-    # Aplica la conversión logarítmica
-    signal_log = 20 * np.log10(ri / max_ri)
+    # Normalizar los valores de audio entre -1 y 1
+    audio_data = audio_data.astype(np.float32) / 32767.0
 
-    return signal_log
+    # Aplicar la conversión logarítmica
+    audio_log = 20 * np.log10(np.abs(audio_data))
 
-#Llamar a la función con alguna de las señales generadas anteriormente.
-#convertir_a_escala_logaritmica(ri=alguna RI)
+    return audio_log
+
+
+señal_audio = "respuesta_al_impulsoObtenida.wav"
+audio_log = convertir_audio_a_escala_logaritmica(señal_audio)
+
