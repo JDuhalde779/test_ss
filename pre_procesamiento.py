@@ -25,7 +25,7 @@ def test_ruido_rosa(t,ncols=16,fs=44100):
     
 
     # Genera el Sine Sweep
-    sine_sweep = generar_sine_sweep_y_inversa(duracion, frec_comienzo, frec_final, fs=44100)
+    sine_sweep = generar_sine_sweep_y_inversa(duracion, frec_comienzo, frec_final, fs=44100, periodo=1.0)
     
     # Guarda el Sine Sweep como archivo de audio .wav
     sf.write('sine_sweep_log.wav', sine_sweep, fs)
@@ -133,7 +133,7 @@ frec_comienzo = 20  # Frecuencia inicial en Hz
 freq_final = 20000  # Frecuencia final en Hz
 fs = 44100  # Frecuencia de muestreo en Hz
 
-def generar_sine_sweep_y_inversa(duracion, frec_comienzo, freq_final, fs=44100):
+def generar_sine_sweep_y_inversa(duracion, frec_comienzo, freq_final, fs=44100, periodo=1.0):
     """
     Genera un sine sweep logaritmico y su correspondiente filtro inverso.
 
@@ -142,13 +142,13 @@ def generar_sine_sweep_y_inversa(duracion, frec_comienzo, freq_final, fs=44100):
     frec_comienzo(float):frequencia de comienzo en Hz.
     freq_final (float): frecuencia final en Hz.
     fs (int):frecuencia de sampleo en Hz. Predeterminado en 44100 Hz.
+    periodo (float): Duración del período a graficar en segundos. Predeterminado en 1.0 segundo.
 
     Returns:
     tuple: Una tupla que contiene el sine sweep logaritmico generado
     """
     t = np.linspace(0, duracion, int(fs * duracion), endpoint=False)
     
-
     # Calcula el escalamiento de amplitud para cada fercuencia
     freqs = np.exp(np.linspace(np.log(frec_comienzo), np.log(freq_final), len(t)))
 
@@ -158,36 +158,32 @@ def generar_sine_sweep_y_inversa(duracion, frec_comienzo, freq_final, fs=44100):
     # Normaliza el Sine Sweep
     sine_sweep /= np.max(np.abs(sine_sweep))
 
-
-    t_swipe_arange = np.arange(0, duracion*fs)/fs  # Arreglo de muestreos
-    R = np.log(freq_final/frec_comienzo)  # Ratio del Sweep
-    K = duracion*2*np.pi*frec_comienzo/R
-    L = duracion/R
-    w = (K/L)*np.exp(t_swipe_arange/L)
-    m = frec_comienzo/w
-
-    # Calcula el filtro inverso  k(t)
-    x_t = sine_sweep
-    k_t = m * x_t[::-1]  #  Inversion temporal de x(t)
-
-    # Normaliza el Filtro Inverso 
-    k_t /= np.max(np.abs(k_t))
+    # Encuentra el índice que corresponde al final del período a graficar
+    periodo_samples = int(periodo * fs)
     
-    # Calcula el eje de tiempo  en segundos
-    tiempo_segundos = np.linspace(0, duracion, len(sine_sweep), endpoint=False)    
-
-    # Plotea el Sine Sweep generado
+    # Gráfica solo un período del Sine Sweep
     plt.figure(figsize=(12, 4))
     plt.subplot(121)
-    plt.plot(tiempo_segundos, sine_sweep)
-    plt.title('Sine Sweep logaritmico')
+    plt.plot(t[:periodo_samples], sine_sweep[:periodo_samples])
+    plt.title('Sine Sweep logaritmico (1 periodo)')
     plt.xlabel('Tiempo (seconds)')
     plt.ylabel('Amplitud')
     plt.grid(True)
     plt.tight_layout()
     plt.show()
 
-    # Plotea el Filtro Inverso 
+    # Calcula el filtro inverso
+    t_swipe_arange = np.arange(0, duracion*fs)/fs
+    R = np.log(freq_final/frec_comienzo)
+    K = duracion*2*np.pi*frec_comienzo/R
+    L = duracion/R
+    w = (K/L)*np.exp(t_swipe_arange/L)
+    m = frec_comienzo/w
+    x_t = sine_sweep
+    k_t = m * x_t[::-1]
+    k_t /= np.max(np.abs(k_t))
+    
+     # Plotea el Filtro Inverso 
     plt.figure(figsize=(10, 4))
     plt.plot(t, k_t)
     plt.title('Filtro Inverso k(t)')
@@ -196,6 +192,7 @@ def generar_sine_sweep_y_inversa(duracion, frec_comienzo, freq_final, fs=44100):
     plt.grid(True)
     plt.show()
     
+
     # Guarda el filtro inverso k(t) como archivo de audio .wav
     sf.write('filtro_inverso.wav', k_t, fs)
    
@@ -248,3 +245,4 @@ def grabar_señal(señal, disp_entrada, disp_salida, duracion):
     return grabar_señal
 
 
+test_ruido_rosa(t)

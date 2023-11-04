@@ -2,7 +2,6 @@ import numpy as np
 import scipy.io.wavfile as wav
 import soundfile as sf
 from scipy.fft import fft, ifft
-
 import os
 
 def cargar_archivos_de_audio(directorio):
@@ -139,7 +138,98 @@ sine_sweep_wav = 'Toma_n1_c-03.wav'  # Archivo .wav del sine sweep logarítmico
 filtro_inverso_wav = 'filtro_inversoDR.wav'  # Archivo .wav del filtro inverso
 salida_wav = 'respuesta_al_impulsoDESCARGADOS.wav'  # Nombre del archivo de salida de la respuesta al impulso
 
-respuesta_al_impulso(sine_sweep_wav, filtro_inverso_wav, salida_wav)
+#respuesta_al_impulso(sine_sweep_wav, filtro_inverso_wav, salida_wav)
 
 
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def convertir_audio_a_escala_logaritmica(señal_audio):
+    """
+    Convierte un archivo de audio en escala logarítmica y devuelve el resultado como un array.
+
+    Parámetros:
+    señal_audio (str): Ruta al archivo de audio de entrada (formato .wav).
+
+    Retorna:
+    numpy.ndarray: El array de la señal en escala logarítmica.
+    """
+    # Cargar el archivo de audio .wav
+    tasa_muestreo, audio_data = wav.read(señal_audio)
+
+    # Normalizar los valores de audio entre -1 y 1
+    audio_data = audio_data.astype(np.float32) / 32767.0
+
+    # Aplicar la conversión logarítmica
+    audio_log = 20 * np.log10(np.abs(audio_data) + 1e-10)
+
+    return audio_log
+
+
+señal_audio = "respuesta_al_impulsoDESCARGADOS.wav"
+audio_log = convertir_audio_a_escala_logaritmica(señal_audio)
+
+def plot_dominio_temporal_2(señal, fs=44100, inicio=None, duracion=None, umbral_amplitud=None):
+    """
+    Muestra el dominio temporal de la señal con un umbral de amplitud.
+
+    Parámetros
+    ----------
+    señal : str o NumPy array
+        Si es una cadena (str), se asume que es una ruta al archivo de audio WAV.
+        Si es un NumPy array, se asume que es la señal directa.
+    fs : int
+        Frecuencia de muestreo en Hz de la señal.
+    inicio : float, opcional
+        Tiempo de inicio para la ventana en segundos.
+    duracion : float, opcional
+        Duración de la ventana en segundos.
+    umbral_amplitud : float, opcional
+        Umbral de amplitud para mostrar valores en el gráfico.
+
+    Retorna
+    -------
+    None
+    """
+    if isinstance(señal, str):  # Si es una cadena, se asume que es un archivo WAV
+        tasa_muestreo, audio_data = wav.read(señal)
+        fs = tasa_muestreo
+    else:  # Si es un NumPy array, se asume que es la señal directa
+        audio_data = señal
+
+    # Calcula los valores de tiempo
+    tiempo = np.arange(len(audio_data)) / fs
+
+    # Establece el índice de inicio y final
+    if inicio is None:
+        inicio = 0
+    if duracion is None:
+        duracion = tiempo[-1]
+
+    # Encuentra los índices correspondientes al inicio y final de la ventana
+    inicio_idx = int(inicio * fs)
+    fin_idx = int((inicio + duracion) * fs)
+
+    # Asegura que los índices estén dentro de los límites de la señal
+    inicio_idx = max(0, inicio_idx)
+    fin_idx = min(len(audio_data), fin_idx)
+
+    # Aplicar umbral de amplitud si se proporciona
+    if umbral_amplitud is not None:
+        audio_data[audio_data < umbral_amplitud] = umbral_amplitud
+
+    # Crea una nueva figura y plotea la señal en la ventana especificada
+    plt.figure(figsize=(10, 4))
+    plt.plot(tiempo[inicio_idx:fin_idx], audio_data[inicio_idx:fin_idx])
+    plt.title('Dominio Temporal de la Señal')
+    plt.xlabel('Tiempo (segundos)')
+    plt.ylabel('Amplitud')
+    plt.grid(True)
+    plt.show()
+
+# Ventanea y plotea una parte específica de la señal de 1 segundo, comenzando en el segundo 2.
+plot_dominio_temporal_2("respuesta_al_impulsoDESCARGADOS.wav", fs=44100, inicio=0, duracion=1.75, umbral_amplitud= None)
+plot_dominio_temporal_2(audio_log, fs=44100, inicio=0, duracion=1.35, umbral_amplitud= -90)
 

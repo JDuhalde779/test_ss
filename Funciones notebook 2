@@ -6,9 +6,12 @@ from scipy.signal import find_peaks
 from pydub.playback import play
 import soundfile as sf
 import scipy.io.wavfile as wav
+from scipy.fft import fft, ifft
+from pre_procesamiento import plot_dominio_temporal
 
 #Constantes
 fs = 44100
+
 def cargar_archivos_de_audio(directorio):
     archivos_de_audio = []
 
@@ -50,46 +53,71 @@ else:
 
 
 
+def generar_filtro_inverso(input_file, output_file, fs=44100):
+    # Cargar el archivo .wav del sine sweep
+    fs_sine_sweep, sine_sweep = wav.read(input_file)
 
-def sintetizar_respuesta_al_impulso(T60, frecuencias_centrales, duracion, nombre_archivo="respuesta_impulso.wav"):
-    fs = 44100  # Frecuencia de muestreo (puedes ajustarla según tus necesidades)
-    num_muestras = int(fs * duracion)
-    tiempo = np.linspace(0, duracion, num_muestras, endpoint=False)
-    
-    respuesta_impulso = np.zeros(num_muestras)
-    
-    for i in range(len(frecuencias_centrales)):
-        fi = frecuencias_centrales[i]
-        Ti60i = T60[i]
-        tau_i = -np.log(10 ** -3) / Ti60i
-        
-        # Generar una señal de respuesta al impulso con decaimiento exponencial
-        yi = np.exp(-tiempo * tau_i) * np.cos(2 * np.pi * fi * tiempo)  #modifique el -tiempo/tau_i por una multiplicación
-        
-        respuesta_impulso += yi
-    
+    duracion = len(sine_sweep) / fs_sine_sweep  # Duración del sine sweep
+
+    t_swipe_arange = np.arange(0, duracion*fs)/fs  # Arreglo de muestreos
+    R = np.log(20000/20)  
+    K = duracion*2*np.pi*20/R
+    L = duracion/R
+    w = (K/L)*np.exp(t_swipe_arange/L)
+    m = 20/w
+
+    # Calcula el filtro inverso k(t)
+    k_t = m * sine_sweep[::-1]  # Inversion temporal de x(t)
+
+    # Normaliza el Filtro Inverso
+    k_t /= np.max(np.abs(k_t))
+
+    # Guarda el filtro inverso k(t) como archivo de audio .wav
+    wav.write(output_file, fs, k_t.astype(np.float32))
+
+# Uso de la función
+input_file = 'Toma_n1_c-03.wav'  # Nombre del archivo .wav del sine sweep
+output_file = 'filtro_inversoDR.wav'  # Nombre del archivo de salida del filtro inverso
+
+#generar_filtro_inverso(input_file, output_file)
+
+
+def generar_respuesta_al_impulso(T60_lista, frecuencias_lista, duracion, archivo_salida):
+    # Número de muestras
+    fs = 44100  # Frecuencia de muestreo (puedes ajustarla)
+    n_muestras = int(fs * duracion)
+
+    # Crear el arreglo de tiempo
+    t = np.arange(0, n_muestras) / fs
+
+    # Inicializar la respuesta al impulso
+    respuesta_impulso = np.zeros(n_muestras)
+
+    # Generar la respuesta al impulso para cada frecuencia y T60 y sumarlas
+    for T60, frecuencia in zip(T60_lista, frecuencias_lista):
+        # Cálculo de τ
+        tau = -np.log(10**(-3)) / (T60)
+
+        # Generar la respuesta al impulso para la frecuencia actual
+        respuesta_frecuencia = np.exp(-tau * t) * np.cos(2 * np.pi * frecuencia * t)
+
+        # Sumar la respuesta de esta frecuencia a la respuesta global
+        respuesta_impulso += respuesta_frecuencia
+
+    # Normalizar la respuesta al impulso
     respuesta_impulso /= np.max(np.abs(respuesta_impulso))
-    
-    # Escalar la respuesta al impulso a un rango adecuado para exportarla como audio
-    respuesta_impulso *= 32767.0  # Valor máximo para audio de 16 bits
-    
-    respuesta_impulso = respuesta_impulso.astype(np.int16)
-    
-    # Crear un archivo WAV con formato de 16 bits y PCM
-    AudioSegment(
-        respuesta_impulso.tobytes(),
-        frame_rate=fs,
-        sample_width=2,
-        channels=1
-    ).export(nombre_archivo, format="wav")
 
-# Ejemplo de uso
-T60 = [3.86, 2.86, 2.59, 2.61]
-frecuencias_centrales = [125, 250, 500, 1000]
-duracion = max(T60) + 5
-nombre_archivo = "respuesta_impulso.wav"
+    # Guardar la respuesta al impulso como archivo de audio .wav
+    wav.write(archivo_salida, fs, respuesta_impulso.astype(np.float32))
 
-#sintetizar_respuesta_al_impulso(T60, frecuencias_centrales, duracion, nombre_archivo)
+# Ejemplo de uso de la función
+T60_lista = [2.59, 2.61, 2.47]  # Lista de T60 para cada frecuencia
+frecuencias_lista = [500, 1000, 2000]  # Lista de frecuencias centrales
+duracion = max(T60_lista) + 2  # Duración en segundos
+nombre_archivo = 'respuesta_al_impulso.wav'  # Nombre del archivo de salida
+
+#generar_respuesta_al_impulso(T60_lista, frecuencias_lista, duracion, nombre_archivo)
+
 
 # Reproducir la respuesta al impulso generada
 #play(AudioSegment.from_wav(nombre_archivo))
@@ -98,34 +126,37 @@ nombre_archivo = "respuesta_impulso.wav"
 sine_sweep = "signal_recording.wav"
 filtro_inv = "filtro_inverso.wav"
 
-def obtencion_rta_al_impulso(sine_sweep, filtro_inv):
-    y_t, fs = sf.read(sine_sweep)
-    k_t, fs = sf.read(filtro_inv)
+def respuesta_al_impulso(sine_sweep_wav, filtro_inverso_wav, salida_wav):
+    # Cargar los archivos .wav
+    sine_sweep, fs_sine_sweep = sf.read(sine_sweep_wav)
+    filtro_inverso, fs_filtro_inverso = sf.read(filtro_inverso_wav)
 
-    # Asegúrate de que ambas señales tengan la misma longitud
-    min_length = min(len(y_t), len(k_t))
-    y_t = y_t[:min_length]
-    k_t = k_t[:min_length]
+    # Asegurarse de que tengan la misma frecuencia de muestreo
+    if fs_sine_sweep != fs_filtro_inverso:
+        raise ValueError("Las señales deben tener la misma frecuencia de muestreo.")
 
-    # Calcular la Transformada de Fourier
-    Y_jw = np.fft.fft(y_t)
-    K_jw = np.fft.fft(k_t)
-    H_jw = Y_jw * K_jw
+    # Calcular la transformada de Fourier de ambas señales
+    fft_sine_sweep = fft(sine_sweep)
+    fft_filtro_inverso = fft(filtro_inverso)
 
-    # Calcular la antitransformada de Fourier
-    h_t = np.fft.ifft(H_jw).real
-    h_t = h_t.astype('float32')
+    # Multiplicar las transformadas en el dominio de la frecuencia
+    respuesta_frecuencial = fft_sine_sweep * fft_filtro_inverso
 
-    # Asegúrate de que h_t tenga la misma longitud que y_t y k_t
-    h_t = h_t[:min_length]
+    # Aplicar la antitransformada para obtener la respuesta al impulso en el dominio del tiempo
+    respuesta_impulso = ifft(respuesta_frecuencial).real
 
-    # Guarda la respuesta al impulso
-    sf.write("RI_recinto.wav", h_t, 44100)
+    # Normalizar la respuesta al impulso
+    respuesta_impulso /= np.max(np.abs(respuesta_impulso))
 
-    return h_t
+    # Guardar la respuesta al impulso como archivo de audio .wav
+    sf.write(salida_wav, respuesta_impulso, fs_sine_sweep)
 
-# Llamar a la función
-obtencion_rta_al_impulso(sine_sweep, filtro_inv)
+# Ejemplo de uso de la función
+sine_sweep_wav = 'Toma_n1_c-03.wav'  # Archivo .wav del sine sweep logarítmico
+filtro_inverso_wav = 'filtro_inversoDR.wav'  # Archivo .wav del filtro inverso
+salida_wav = 'respuesta_al_impulsoDESCARGADOS.wav'  # Nombre del archivo de salida de la respuesta al impulso
+
+respuesta_al_impulso(sine_sweep_wav, filtro_inverso_wav, salida_wav)
 
 
 
