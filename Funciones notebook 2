@@ -202,7 +202,7 @@ def convertir_audio_a_escala_logaritmica(señal_audio):
     numpy.ndarray: El array de la señal en escala logarítmica.
     """
     # Cargar el archivo de audio .wav
-    tasa_muestreo, audio_data = wavfile.read(señal_audio)
+    tasa_muestreo, audio_data = wav.read(señal_audio)
 
     # Normalizar los valores de audio entre -1 y 1
     audio_data = audio_data.astype(np.float32) / 32767.0
