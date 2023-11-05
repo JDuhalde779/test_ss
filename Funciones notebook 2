@@ -2,6 +2,7 @@ import os
 import numpy as np
 import wave
 from pydub import AudioSegment
+import scipy.signal as signal
 from scipy.signal import find_peaks
 from pydub.playback import play
 import soundfile as sf
@@ -156,7 +157,7 @@ sine_sweep_wav = 'Toma_n1_c-03.wav'  # Archivo .wav del sine sweep logarítmico
 filtro_inverso_wav = 'filtro_inversoDR.wav'  # Archivo .wav del filtro inverso
 salida_wav = 'respuesta_al_impulsoDESCARGADOS.wav'  # Nombre del archivo de salida de la respuesta al impulso
 
-respuesta_al_impulso(sine_sweep_wav, filtro_inverso_wav, salida_wav)
+#respuesta_al_impulso(sine_sweep_wav, filtro_inverso_wav, salida_wav)
 
 
 
@@ -174,22 +175,20 @@ def iec61260_filtros(audio_signal, sample_rate=44100):
         lower_cutoff_frequency_hz = center_frequency_hz / factor
         upper_cutoff_frequency_hz = center_frequency_hz * factor
 
-        # Extraer coeficientes del filtro
-        b, a = audio_signal.iirfilter(4, [2 * np.pi * lower_cutoff_frequency_hz, 2 * np.pi * upper_cutoff_frequency_hz],
-                                rs=60, btype='band', analog=True,
-                                ftype='butter')
-
         # Para aplicar el filtro de manera más óptima
-        sos = audio_signal.iirfilter(4, [lower_cutoff_frequency_hz, upper_cutoff_frequency_hz],
+        sos = signal.iirfilter(4, [lower_cutoff_frequency_hz, upper_cutoff_frequency_hz],
                                rs=60, btype='band', analog=False,
                                ftype='butter', fs=sample_rate, output='sos')
-        filtered_signal = audio_signal.sosfilt(sos, audio_signal)
+        filtered_signal = signal.sosfilt(sos, audio_signal)
 
         filtered_signals.append(filtered_signal)
 
     return filtered_signals
+
 #Llamar a la función con alguna RI generada anteriormente.
-#iec61260_filtros(audio_signal=alguna RI, sample_rate=44100):
+audio_signal = sf.read("respuesta_al_impulsoDESCARGADOS.wav")
+señal_filtrada= iec61260_filtros(audio_signal, sample_rate=44100)
+sf.write("señal_filtrada", señal_filtrada, sample_rate=44100)
 
 def convertir_audio_a_escala_logaritmica(señal_audio):
     """
@@ -215,4 +214,6 @@ def convertir_audio_a_escala_logaritmica(señal_audio):
 
 señal_audio = "respuesta_al_impulsoObtenida.wav"
 audio_log = convertir_audio_a_escala_logaritmica(señal_audio)
+
+
 
