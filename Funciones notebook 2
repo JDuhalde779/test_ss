@@ -53,6 +53,29 @@ else:
     print("El índice seleccionado está fuera de rango. Debe estar en el rango [0, {}].".format(len(archivos_audio) - 1))
 
 
+def stereo_a_mono_wav(archivo_entrada):
+    # Verifica si el archivo de entrada es un archivo WAV
+    if not archivo_entrada.lower().endswith(".wav"):
+        print("El archivo de entrada debe ser un archivo WAV.")
+        return
+
+    # Construye el nombre del archivo de salida con "_mono" agregado
+    output_file = os.path.splitext(archivo_entrada)[0] + "_mono.wav"
+
+    # Carga el archivo de audio estéreo en formato WAV
+    audio = AudioSegment.from_wav(archivo_entrada)
+
+    # Convierte el audio a mono
+    audio = audio.set_channels(1)
+
+    # Guarda el audio mono en el archivo de salida en formato WAV
+    audio.export(output_file, format="wav")
+    print(f"Archivo de salida guardado como {output_file}")
+
+# Ejemplo de uso
+archivo_entrada = archivo_seleccionado
+stereo_a_mono_wav(archivo_entrada)
+
 
 def generar_filtro_inverso(input_file, output_file, fs=44100):
     # Cargar el archivo .wav del sine sweep

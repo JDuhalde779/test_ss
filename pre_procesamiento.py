@@ -97,33 +97,63 @@ def ruidoRosa_voss(t,ncols=16,fs=44100):
     
     return total
 
-def plot_dominio_temporal(señal, fs= 44100):
+def plot_dominio_temporal_2(señal, fs=44100, inicio=None, duracion=None, umbral_amplitud=None):
     """
-    Muestra el dominio temporal de la señal.
+    Muestra el dominio temporal de la señal con un umbral de amplitud.
 
-    Parametros
+    Parámetros
     ----------
-    señal : NumPy array
-        Señal a mostrar en el dominio temporal.
+    señal : str o NumPy array
+        Si es una cadena (str), se asume que es una ruta al archivo de audio WAV.
+        Si es un NumPy array, se asume que es la señal directa.
     fs : int
         Frecuencia de muestreo en Hz de la señal.
+    inicio : float, opcional
+        Tiempo de inicio para la ventana en segundos.
+    duracion : float, opcional
+        Duración de la ventana en segundos.
+    umbral_amplitud : float, opcional
+        Umbral de amplitud para mostrar valores en el gráfico.
 
-    Returns
+    Retorna
     -------
     None
     """
-    # Calcula los valores de tiempo
-    tiempo = np.arange(len(señal)) / fs
+    if isinstance(señal, str):  # Si es una cadena, se asume que es un archivo WAV
+        tasa_muestreo, audio_data = wav.read(señal)
+        fs = tasa_muestreo
+    else:  # Si es un NumPy array, se asume que es la señal directa
+        audio_data = señal
 
-    # Crea una nueva figura y plotea la señal
+    # Calcula los valores de tiempo
+    tiempo = np.arange(len(audio_data)) / fs
+
+    # Establece el índice de inicio y final
+    if inicio is None:
+        inicio = 0
+    if duracion is None:
+        duracion = tiempo[-1]
+
+    # Encuentra los índices correspondientes al inicio y final de la ventana
+    inicio_idx = int(inicio * fs)
+    fin_idx = int((inicio + duracion) * fs)
+
+    # Asegura que los índices estén dentro de los límites de la señal
+    inicio_idx = max(0, inicio_idx)
+    fin_idx = min(len(audio_data), fin_idx)
+
+    # Aplicar umbral de amplitud si se proporciona
+    if umbral_amplitud is not None:
+        audio_data[audio_data < umbral_amplitud] = umbral_amplitud
+
+    # Crea una nueva figura y plotea la señal en la ventana especificada
     plt.figure(figsize=(10, 4))
-    plt.plot(tiempo, señal)
+    plt.plot(tiempo[inicio_idx:fin_idx], audio_data[inicio_idx:fin_idx])
     plt.title('Dominio Temporal de la Señal')
     plt.xlabel('Tiempo (segundos)')
     plt.ylabel('Amplitud')
     plt.grid(True)
     plt.show()
-
 
 
 
