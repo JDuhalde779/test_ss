@@ -5,6 +5,7 @@ import pandas as pd
 from scipy.signal import welch
 import sounddevice as sd
 import time
+import scipy.io.wavfile as wav
 
 t=10
 # Ver la lista de dispositivos de audio
@@ -97,7 +98,7 @@ def ruidoRosa_voss(t,ncols=16,fs=44100):
     
     return total
 
-def plot_dominio_temporal_2(señal, fs=44100, inicio=None, duracion=None, umbral_amplitud=None):
+def plot_dominio_temporal(señal, fs=44100, inicio=None, duracion=None, umbral_amplitud=None):
     """
     Muestra el dominio temporal de la señal con un umbral de amplitud.
 
