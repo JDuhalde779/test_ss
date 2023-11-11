@@ -9,6 +9,7 @@ import soundfile as sf
 import scipy.io.wavfile as wav
 from scipy.fft import fft, ifft
 from pre_procesamiento import plot_dominio_temporal
+
 def convertir_audio_a_escala_logaritmica(señal_audio):
     """
     Convierte un archivo de audio en escala logarítmica y devuelve el resultado como un array.

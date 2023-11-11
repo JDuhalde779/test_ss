@@ -1,0 +1,51 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import soundfile as sf
+def calculate_schroeder_integral(hA):
+    """
+    Calcula la integral de Schroeder para una respuesta al impulso dada.
+    Parameters:
+    - hA: np.array, respuesta al impulso suavizada.
+    Returns:
+    - E: np.array, valores de la integral de Schroeder.
+    """
+    # Crear el arreglo de tiempo
+    tau = np.arange(0, len(hA))
+    # Definir td y calcular la integral de Schroeder
+    td = 100000 # Puedes ajustar este valor según tus necesidades
+    E =  (np.sum(hA[:td]**2) - np.log10(np.cumsum(hA[td -1::-1]**2)))
+    E = 10 *np.log10(E/np.sum(hA[:td]**2))
+    return E
+# Ejemplo de uso:
+# Supongamos que tienes una respuesta al impulso suavizada hA
+# Reemplaza esto con tu respuesta al impulso suavizada
+td = 100000
+# Calcular la integral de Schroeder
+hA, tasa_muestreo  = sf.read(r"C:\Users\duhal\Documents\A Ing. de Sonido\signal-systems-\TP Señales\Mi repo para TP SyS\salida_filtrada.wav")
+integral_schroeder = calculate_schroeder_integral(hA)
+# Imprimir el resultado
+print(integral_schroeder)
+# Crear el arreglo de tiempo
+tau = np.arange(0, len(hA))
+# Graficar la señal original y la integral de Schroeder
+plt.subplot(2, 1, 1)
+plt.plot(tau, hA, label='Respuesta al Impulso Suavizada')
+plt.title('Señal Original')
+plt.xlabel('Tiempo')
+plt.ylabel('Amplitud')
+plt.legend()
+plt.subplot(2, 1, 2)
+plt.plot(tau[:td], integral_schroeder, label='Integral de Schroeder')
+plt.title('Integral de Schroeder')
+plt.xlabel('Tiempo')
+plt.ylabel('Amplitud (dB)')
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+from pre_procesamiento import plot_dominio_temporal
+from Funciones_notebook_2 import convertir_audio_a_escala_logaritmica
+
+señal_audio = "salida_filtrada.wav"
+audio_log = convertir_audio_a_escala_logaritmica(señal_audio)
+plot_dominio_temporal(audio_log,fs= 44100)
