@@ -71,6 +71,7 @@ def stereo_a_mono_wav(archivo_entrada):
     # Guarda el audio mono en el archivo de salida en formato WAV
     audio.export(output_file, format="wav")
     print(f"Archivo de salida guardado como {output_file}")
+    return output_file
 
 # Ejemplo de uso
 archivo_entrada = archivo_seleccionado
