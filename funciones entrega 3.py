@@ -28,36 +28,12 @@ def convertir_audio_a_escala_logaritmica(señal_audio):
     # Normalizar los valores de audio entre -1 y 1
     audio_data = audio_data.astype(np.float32) / 32767.0
 
-    # Aplicar la conversión logarítmica
-    audio_log = 20 * np.log10(np.abs(audio_data))
+    epsilon = 1e-10
+
+    # Calcular el espectro en escala logarítmica (en decibelios)
+    audio_log = 20 * np.log10(np.abs(audio_data) + epsilon)
 
     return audio_log
-
-
-def filtro_promedio_movil(input_file, output_file, L):
-    # Leer el archivo WAV de entrada
-    sample_rate, audio_data = wav.read(input_file)
-
-    # Aplicar el filtro de promedio móvil
-    filtered_signal = np.zeros(len(audio_data))
-    for i in range(L, len(audio_data)):
-        filtered_signal[i] = (1/L) * sum(audio_data[i-j] for j in range(L))
-
-    # Guardar la señal filtrada en un archivo WAV de salida
-    wav.write(output_file, sample_rate, filtered_signal.astype(np.int16))
-
-# Ejemplo de uso
-input_file = "respuesta_al_impulsoDESCARGADOS.wav"
-output_file = "salida_filtrada.wav"
-L = 10  # Número de muestras para el promedio móvil
-filtro_promedio_movil(input_file, output_file, L)
-señal_audio = output_file
-audio_log = convertir_audio_a_escala_logaritmica(señal_audio)
-señal_audio_2 = input_file
-audio_log_2 = convertir_audio_a_escala_logaritmica(señal_audio_2)
-#plot_dominio_temporal(audio_log_2, fs=44100, inicio=0, duracion=1.75, umbral_amplitud= None)
-#plot_dominio_temporal(audio_log, fs=44100, inicio=0, duracion=1.75, umbral_amplitud= None)
-
 
 
 archivos_audio = cargar_archivos_de_audio("carpeta_de_audios")
@@ -78,16 +54,37 @@ if 0 <= indice_archivo < len(archivos_audio):
     # Cargar el archivo, procesarlo, etc.
 else:
     print("El índice seleccionado está fuera de rango. Debe estar en el rango [0, {}].".format(len(archivos_audio) - 1))
-
-
 # Ejemplo de uso
+
+
 archivo_entrada = archivo_seleccionado
 archivo_mono = stereo_a_mono_wav(archivo_entrada)
 
-import numpy as np
-from scipy.io import wavfile
-from scipy.signal import find_peaks
+def filtro_promedio_movil(input_file, output_file, L):
+    # Leer el archivo WAV de entrada
+    sample_rate, audio_data = wav.read(input_file)
+   
+    # Aplicar el filtro de promedio móvil
+    filtered_signal = np.zeros_like(audio_data, dtype=np.float64)
 
+    for i in range(L, len(audio_data)):
+        filtered_signal[i] = (1/L) * np.sum(audio_data[i-L+1:i+1])
+
+    # Guardar la señal filtrada en un archivo WAV de salida
+    wav.write(output_file, sample_rate, filtered_signal.astype(np.int16))
+
+
+# Ejemplo de uso
+input_file = "respuesta_al_impulsoObtenida.wav"
+output_file = "salida_filtrada.wav"
+L = 100 # Número de muestras para el promedio móvil
+filtro_promedio_movil(input_file, output_file, L)
+señal_audio = output_file
+audio_log = convertir_audio_a_escala_logaritmica(señal_audio)
+señal_audio_2 = input_file
+audio_log_2 = convertir_audio_a_escala_logaritmica(señal_audio_2)
+plot_dominio_temporal(audio_log_2, fs=44100, inicio=0, duracion=1.75, umbral_amplitud= -100)
+plot_dominio_temporal(audio_log, fs=44100, inicio=0, duracion=1.75, umbral_amplitud= -100)
 
 
 def calcular_edt_para_todas_las_frecuencias(ruta_archivo, frecuencias_tercios_octava):
@@ -116,6 +113,6 @@ def calcular_edt_para_todas_las_frecuencias(ruta_archivo, frecuencias_tercios_oc
 # Ejemplo de uso
 frecuencias_tercios_octava = [125, 250, 500, 1000, 2000, 4000, 8000]  # Ejemplo de frecuencias de tercios de octava
 
-resultados_edt = calcular_edt_para_todas_las_frecuencias(archivo_mono, frecuencias_tercios_octava)
+resultados_edt = calcular_edt_para_todas_las_frecuencias(output_file, frecuencias_tercios_octava)
 for frecuencia, edt_resultado in zip(frecuencias_tercios_octava, resultados_edt):
     print(f"EDT para {frecuencia} Hz: {edt_resultado} segundos")
