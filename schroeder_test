@@ -1,6 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import soundfile as sf
+import scipy.io.wavfile as wav
+from pre_procesamiento import plot_dominio_temporal
+
+
 def calculate_schroeder_integral(hA):
     """
     Calcula la integral de Schroeder para una respuesta al impulso dada.
@@ -43,8 +47,26 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
-from pre_procesamiento import plot_dominio_temporal
-from Funciones_notebook_2 import convertir_audio_a_escala_logaritmica
+def convertir_audio_a_escala_logaritmica(señal_audio):
+    """
+    Convierte un archivo de audio en escala logarítmica y devuelve el resultado como un array.
+
+    Parámetros:
+    señal_audio (str): Ruta al archivo de audio de entrada (formato .wav).
+
+    Retorna:
+    numpy.ndarray: El array de la señal en escala logarítmica.
+    """
+    # Cargar el archivo de audio .wav
+    tasa_muestreo, audio_data = wav.read(señal_audio)
+
+    # Normalizar los valores de audio entre -1 y 1
+    audio_data = audio_data.astype(np.float32) / 32767.0
+
+    # Aplicar la conversión logarítmica
+    audio_log = 20 * np.log10(np.abs(audio_data))
+
+    return audio_log
 
 señal_audio = "salida_filtrada.wav"
 audio_log = convertir_audio_a_escala_logaritmica(señal_audio)
