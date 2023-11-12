@@ -104,33 +104,6 @@ plot_dominio_temporal(audio_log_2, fs=44100, inicio=0, duracion=1.75, umbral_amp
 plot_dominio_temporal(audio_log, fs=44100, inicio=0, duracion=1.75, umbral_amplitud= -100)
 
 
-
-def regresion_lineal(x, y):
-    # Función para realizar la regresión lineal
-    X = np.vstack((np.ones(len(x)), x)).T
-    XT = np.transpose(X)
-    XTX = np.dot(XT, X)
-    XTX_inv = np.linalg.inv(XTX)
-    XTY = np.dot(XT, y)
-    coeficientes = np.dot(XTX_inv, XTY)
-    return coeficientes
-
-# Cargar la respuesta al impulso desde el archivo .wav
-respuesta_al_impulso, tasa_muestreo = sf.read(output_file)
-
-# Crear un vector de tiempo (puedes ajustar esto según la duración de tu respuesta al impulso)
-tiempo = np.arange(0, len(respuesta_al_impulso)/tasa_muestreo, 1/tasa_muestreo)
-
-# Aplicar regresión lineal
-coeficientes = regresion_lineal(tiempo, respuesta_al_impulso)
-
-# Coeficientes resultantes: coeficientes[0] es b (ordenada al origen) y coeficientes[1] es a (pendiente)
-a, b = coeficientes[1], coeficientes[0]
-
-print(f"La recta de regresión es: y = {a}x + {b}")   
-
-
-
 def calcular_edt_para_todas_las_frecuencias(ruta_archivo, frecuencias_tercios_octava):
     # Función para calcular el EDT para todas las frecuencias de tercios de octava de un archivo WAV
     tasa_muestreo, señal = wav.read(ruta_archivo)

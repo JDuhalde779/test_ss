@@ -79,62 +79,10 @@ audio_signal, sample_rate = sf.read("respuesta_al_impulsoObtenida.wav")
 iec61260_filtros(audio_signal,1000, sample_rate=44100)
 
 
-def regresion_lineal(x, y):
-    # Función para realizar la regresión lineal
-    X = np.vstack((np.ones(len(x)), x)).T
-    XT = np.transpose(X)
-    XTX = np.dot(XT, X)
-    XTX_inv = np.linalg.inv(XTX)
-    XTY = np.dot(XT, y)
-    coeficientes = np.dot(XTX_inv, XTY)
-    return coeficientes
-
-# Cargar la respuesta al impulso desde el archivo .wav
-respuesta_al_impulso, tasa_muestreo = sf.read("salida_filtrada.wav")
-
-# Crear un vector de tiempo (puedes ajustar esto según la duración de tu respuesta al impulso)
-tiempo = np.arange(0, len(respuesta_al_impulso)/tasa_muestreo, 1/tasa_muestreo)
-
-# Aplicar regresión lineal
-coeficientes = regresion_lineal(tiempo, respuesta_al_impulso)
-
-# Coeficientes resultantes: coeficientes[0] es b (ordenada al origen) y coeficientes[1] es a (pendiente)
-a, b = coeficientes[1], coeficientes[0]
-
-print(f"La recta de regresión es: y = {a}x + {b}")   
 
 
-def calcular_edt_con_regresion(ruta_archivo, umbral_dB=10, ventana_suavizado=100):
-    # Función para calcular el EDT utilizando la regresión lineal para determinar el tiempo donde la respuesta cae 10 dB desde el pico
-    tasa_muestreo, señal = wav.read(ruta_archivo)
 
 
-    # Encontrar el índice del pico en la región de interés
-    pico_indice = np.argmax(señal)
-
-    # Encontrar el punto donde la respuesta al impulso suavizada decae 10 dB desde el pico
-    umbral_amplitud = np.max(señal) - umbral_dB
-    indices_descenso, _ = find_peaks(-señal[pico_indice:], height=umbral_amplitud)
-
-    # Calcular el tiempo de EDT utilizando la regresión lineal
-    if indices_descenso.size > 0:
-        tiempo_edt = pico_indice + indices_descenso[0]
-        tiempo_edt /= tasa_muestreo
-
-        # Calcular la regresión lineal para la parte posterior al pico
-        x_post_pico = np.arange(pico_indice, len(señal)) / tasa_muestreo
-        y_post_pico = señal[pico_indice:]
-
-        # Calcular el tiempo de decaimiento usando la regresión lineal
-        tiempo_decaimiento_regresion = -umbral_dB / coeficientes[1]
-        tiempo_decaimiento_regresion += tiempo_edt
-        print(f"Tiempo de decaimiento (regresión): {tiempo_decaimiento_regresion} segundos")
-    else:
-        print("No se pudo calcular el tiempo de decaimiento utilizando la regresión lineal.")
-
-# Ejemplo de uso
-output_file = "salida_filtrada.wav"  # Reemplazar con la ruta correcta de tu archivo WAV
-calcular_edt_con_regresion(output_file)
 
 
 
