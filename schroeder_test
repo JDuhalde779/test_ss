@@ -17,16 +17,17 @@ def calculate_schroeder_integral(hA):
     tau = np.arange(0, len(hA))
     # Definir td y calcular la integral de Schroeder
     td = 100000 # Puedes ajustar este valor según tus necesidades
-    E =  (np.sum(hA[:td]**2) - np.log10(np.cumsum(hA[td -1::-1]**2)))
-    E = 10 *np.log10(E/np.sum(hA[:td]**2))
+    E =  (np.sum(hA[:]**2) - (np.cumsum(hA[:]**2)))
+    E = 10 *np.log10(E/np.sum(hA**2))
     return E
 # Ejemplo de uso:
 # Supongamos que tienes una respuesta al impulso suavizada hA
 # Reemplaza esto con tu respuesta al impulso suavizada
 td = 100000
 # Calcular la integral de Schroeder
-hA, tasa_muestreo  = sf.read(r"C:\Users\duhal\Documents\A Ing. de Sonido\signal-systems-\TP Señales\Mi repo para TP SyS\salida_filtrada.wav")
+hA, tasa_muestreo  = sf.read(r"C:\Users\duhal\Documents\A Ing. de Sonido\signal-systems-\TP Señales\Mi repo para TP SyS\respuesta_impulso.wav")
 integral_schroeder = calculate_schroeder_integral(hA)
+sf.write("Audio_Schroeder.wav", integral_schroeder,44100)
 # Imprimir el resultado
 print(integral_schroeder)
 # Crear el arreglo de tiempo
@@ -39,7 +40,7 @@ plt.xlabel('Tiempo')
 plt.ylabel('Amplitud')
 plt.legend()
 plt.subplot(2, 1, 2)
-plt.plot(tau[:td], integral_schroeder, label='Integral de Schroeder')
+plt.plot(tau, integral_schroeder, label='Integral de Schroeder')
 plt.title('Integral de Schroeder')
 plt.xlabel('Tiempo')
 plt.ylabel('Amplitud (dB)')
@@ -68,6 +69,8 @@ def convertir_audio_a_escala_logaritmica(señal_audio):
 
     return audio_log
 
-señal_audio = "salida_filtrada.wav"
+señal_audio = "respuesta_impulso.wav"
 audio_log = convertir_audio_a_escala_logaritmica(señal_audio)
 plot_dominio_temporal(audio_log,fs= 44100)
+plot_dominio_temporal(integral_schroeder,fs=44100)
+
