@@ -73,9 +73,26 @@ def filtro_promedio_movil(input_file, output_file, L):
     # Guardar la señal filtrada en un archivo WAV de salida
     wav.write(output_file, sample_rate, filtered_signal.astype(np.int16))
 
+def acortar_wav(input_path, output_path, duracion_deseada):
+    # Cargar el archivo WAV
+    audio = AudioSegment.from_wav(input_path)
+
+    # Acortar la duración según lo deseado
+    audio_recortado = audio[:duracion_deseada * 1000]  # Duración en milisegundos
+
+    # Guardar el nuevo archivo WAV
+    audio_recortado.export(output_path, format="wav")
+
+# Especifica la ruta del archivo de entrada y salida, y la nueva duración deseada en segundos
+archivo_entrada = "respuesta_al_impulsoObtenida.wav"
+archivo_salida = "impulso_recortado.wav"
+duracion_deseada = 5  # Por ejemplo, 10 segundos
+
+
+acortar_wav(archivo_entrada, archivo_salida, duracion_deseada)
 
 # Ejemplo de uso
-input_file = "respuesta_al_impulsoObtenida.wav"
+input_file = "impulso_recortado.wav"
 output_file = "salida_filtrada.wav"
 L = 100 # Número de muestras para el promedio móvil
 filtro_promedio_movil(input_file, output_file, L)
@@ -96,6 +113,7 @@ def calcular_edt_para_todas_las_frecuencias(ruta_archivo, frecuencias_tercios_oc
         # Encontrar el índice de la frecuencia más cercana
         indice_frecuencia_cercana = int(frecuencia / (tasa_muestreo / len(señal)))
 
+        # Encontrar el pico en la región de la frecuencia de interés
         pico_indice = np.argmax(señal[indice_frecuencia_cercana:])
 
         # Encontrar el punto donde la respuesta al impulso suavizada decae 10 dB desde el pico
@@ -103,16 +121,24 @@ def calcular_edt_para_todas_las_frecuencias(ruta_archivo, frecuencias_tercios_oc
         indices_descenso, _ = find_peaks(-señal[pico_indice:], height=umbral_dB)
 
         # Calcular el EDT en segundos
-        edt_indice = pico_indice + indices_descenso[0]
-        tiempo_edt = edt_indice / tasa_muestreo
-
-        resultados_edt.append(tiempo_edt)
+        if indices_descenso.size > 0:
+            edt_indice = pico_indice + indices_descenso[0]
+            tiempo_edt = edt_indice / tasa_muestreo
+            resultados_edt.append(tiempo_edt)
+        else:
+            resultados_edt.append(None)  # Manejo de casos donde no se encuentra el punto de descenso
 
     return resultados_edt
 
 # Ejemplo de uso
-frecuencias_tercios_octava = [125, 250, 500, 1000, 2000, 4000, 8000]  # Ejemplo de frecuencias de tercios de octava
+frecuencias_tercios_octava = [125, 250, 500, 1000, 2000, 4000, 8000]
 
 resultados_edt = calcular_edt_para_todas_las_frecuencias(output_file, frecuencias_tercios_octava)
 for frecuencia, edt_resultado in zip(frecuencias_tercios_octava, resultados_edt):
-    print(f"EDT para {frecuencia} Hz: {edt_resultado} segundos")
+    if edt_resultado is not None:
+        print(f"EDT para {frecuencia} Hz: {edt_resultado} segundos")
+    else:
+        print(f"No se pudo calcular el EDT para {frecuencia} Hz")
+
+
+
