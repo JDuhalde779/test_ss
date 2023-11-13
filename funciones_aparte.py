@@ -119,7 +119,9 @@ def iec61260_filtros(audio_signal, center_frequency, sample_rate=44100):
     center_frequencies = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000]
     frecuencias_centrales_tercio = [25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000]
 
-    if center_frequency in center_frequencies:
+    
+
+    if center_frequency in center_frequencies: 
         G = 1.0 / 2.0  # Octava - G = 1.0/2.0 / 1/3 de Octava - G=1.0/6.0
         factor = np.power(2, G)
         center_frequency_hz = center_frequency
@@ -129,13 +131,13 @@ def iec61260_filtros(audio_signal, center_frequency, sample_rate=44100):
 
         # Para aplicar el filtro de manera más óptima
         sos = signal.iirfilter(4, [lower_cutoff_frequency_hz, upper_cutoff_frequency_hz],
-                               rs=60, btype='band', analog=False,
-                               ftype='butter', fs=sample_rate, output='sos')
+                                rs=60, btype='band', analog=False,
+                                ftype='butter', fs=sample_rate, output='sos')
         filtered_signal = signal.sosfilt(sos, audio_signal)
 
         # Guarda la señal filtrada en un archivo individual
         sf.write(f"señal_filtrada_{center_frequency}.wav", filtered_signal, sample_rate)
-    
+        
     if center_frequency in frecuencias_centrales_tercio:
         G = 1.0 / 6.0  # Octava - G = 1.0/2.0 / 1/3 de Octava - G=1.0/6.0
         factor = np.power(2, G)
@@ -146,18 +148,25 @@ def iec61260_filtros(audio_signal, center_frequency, sample_rate=44100):
 
         # Para aplicar el filtro de manera más óptima
         sos = signal.iirfilter(4, [lower_cutoff_frequency_hz, upper_cutoff_frequency_hz],
-                               rs=60, btype='band', analog=False,
-                               ftype='butter', fs=sample_rate, output='sos')
+                                rs=60, btype='band', analog=False,
+                                ftype='butter', fs=sample_rate, output='sos')
         filtered_signal = signal.sosfilt(sos, audio_signal)
 
         # Guarda la señal filtrada en un archivo individual
         sf.write(f"señal_filtrada_tercio_{center_frequency}.wav", filtered_signal, sample_rate)
-    
+        
     else:
         print("Se ha ingresado un valor de frecuencia inválido")
 
+# Llamar a la función con alguna RI generada anteriormente.
+audio_signal, sample_rate = sf.read("respuesta_al_impulsoDESCARGADOS.wav")
+frecuencias_centrales = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000]
+for i in frecuencias_centrales:
+    iec61260_filtros(audio_signal,i, sample_rate=44100)
+
 
 def stereo_a_mono_wav(archivo_entrada):
+
     # Verifica si el archivo de entrada es un archivo WAV
     if not archivo_entrada.lower().endswith(".wav"):
         print("El archivo de entrada debe ser un archivo WAV.")
@@ -176,3 +185,10 @@ def stereo_a_mono_wav(archivo_entrada):
     audio.export(output_file, format="wav")
     print(f"Archivo de salida guardado como {output_file}")
     return output_file
+
+
+
+
+
+
+
