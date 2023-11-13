@@ -11,10 +11,12 @@ def calculate_schroeder_integral(hA):
     Returns:
     - E: np.array, valores de la integral de Schroeder.
     """
+    # Verificar que no haya valores nan o inf en la respuesta al impulso
+    if np.isnan(hA).any() or np.isinf(hA).any():
+        raise ValueError("La respuesta al impulso contiene valores no numéricos.")
     # Crear el arreglo de tiempo
     tau = np.arange(0, len(hA))
-    # Definir td y calcular la integral de Schroeder
-    td = 100000  # Puedes ajustar este valor según tus necesidades
+    # Calcular la integral de Schroeder
     E = np.sum(hA[:]**2) - np.cumsum(hA[:]**2)
     E = 10 * np.log10(E / np.sum(hA**2))
     return E
@@ -118,3 +120,217 @@ def plot_dominio_temporal2(señal1, señal2, fs=44100, inicio=None, duracion=Non
 # Normaliza la señal
 normalized_audio = convertir_audio_a_escala_logaritmica(hA)
 plot_dominio_temporal2(normalized_audio, integral_schroeder, fs=44100)
+
+
+
+def calculate_edt(schroeder_function, fs):
+    """
+    Calcula el tiempo de reverberación EDT desde una función de Schroeder suavizada.
+
+    Parámetros:
+    - schroeder_function: np.array, función de Schroeder suavizada.
+    - fs: int, frecuencia de muestreo en Hz.
+
+    Retorna:
+    - edt: float, tiempo de reverberación EDT en segundos.
+    """
+    # Calcula la integral de Schroeder
+    schroeder_integral = np.cumsum(schroeder_function[::-1]**2)[::-1]
+
+    # Encuentra el tiempo en el que la integral cruza -10 dB
+    threshold = -10  # Puedes ajustar este valor según las especificaciones de la ISO 3382
+    idx_crossing = np.where(schroeder_integral <= threshold)[0][0]
+    if len(idx_crossing) > 0:
+        # Convierte el índice a tiempo en segundos
+        time_crossing = idx_crossing[0] / fs
+
+        # El EDT es seis veces el tiempo en que la integral cruza -10 dB
+        edt = 6 * time_crossing
+    else:
+        # No se encontró ningún índice que cumpla con el umbral
+        edt = 0  # O cualquier otro valor que desees asignar
+
+    return edt
+# Ejemplo de uso:
+# Supongamos que tienes la función de Schroeder suavizada y la frecuencia de muestreo
+schroeder_function = integral_schroeder  # Reemplaza con tu función de Schroeder
+fs = 44100  # Reemplaza con tu frecuencia de muestreo
+# Calculate the EDT
+edt = calculate_edt(integral_schroeder, fs)
+# Imprime el resultado
+print("EDT:", edt, "segundos")
+
+
+def calculate_t20(schroeder_function, fs):
+    """
+    Calcula el tiempo de reverberación T20 desde una función de Schroeder suavizada.
+
+    Parámetros:
+    - schroeder_function: np.array, función de Schroeder suavizada.
+    - fs: int, frecuencia de muestreo en Hz.
+
+    Retorna:
+    - t20: float, tiempo de reverberación T20 en segundos.
+    """
+    # Calcula la integral de Schroeder
+    schroeder_integral = np.cumsum(schroeder_function[::-1]**2)[::-1]
+
+    # Encuentra el tiempo en el que la integral cruza -5 dB
+    threshold = -5  # Puedes ajustar este valor según las especificaciones de la ISO 3382
+    idx_crossing = np.where(schroeder_integral <= threshold)[0][0]
+
+    # Convierte el índice a tiempo en segundos
+    time_crossing = idx_crossing / fs
+
+    # El T20 es tres veces el tiempo en que la integral cruza -5 dB
+    t20 = 3 * time_crossing
+
+    return t20
+# Ejemplo de uso:
+# Supongamos que tienes la función de Schroeder suavizada y la frecuencia de muestreo
+schroeder_function = ...  # Reemplaza con tu función de Schroeder
+fs = ...  # Reemplaza con tu frecuencia de muestreo
+# Calculate the T20
+t20 = calculate_t20(integral_schroeder, fs)
+# Imprime el resultado
+print("T20:", t20, "segundos")
+
+def calculate_t30(schroeder_function, fs):
+    """
+    Calcula el tiempo de reverberación T30 desde una función de Schroeder suavizada.
+
+    Parámetros:
+    - schroeder_function: np.array, función de Schroeder suavizada.
+    - fs: int, frecuencia de muestreo en Hz.
+
+    Retorna:
+    - t30: float, tiempo de reverberación T30 en segundos.
+    """
+    # Calcula la integral de Schroeder
+    schroeder_integral = np.cumsum(schroeder_function[::-1]**2)[::-1]
+
+    # Encuentra el tiempo en el que la integral cruza 0 dB
+    threshold = 0  # Puedes ajustar este valor según las especificaciones de la ISO 3382
+    idx_crossing = np.where(schroeder_integral <= threshold)[0][0]
+
+    # Convierte el índice a tiempo en segundos
+    time_crossing = idx_crossing / fs
+
+    # El T30 es seis veces el tiempo en que la integral cruza 0 dB
+    t30 = 6 * time_crossing
+
+    return t30
+# Ejemplo de uso:
+# Supongamos que tienes la función de Schroeder suavizada y la frecuencia de muestreo
+schroeder_function = ...  # Reemplaza con tu función de Schroeder
+fs = ...  # Reemplaza con tu frecuencia de muestreo
+# Calculate the T30
+t30 = calculate_t30(integral_schroeder, fs)
+# Imprime el resultado
+print("T30:", t30, "segundos")
+
+def calculate_t60(schroeder_function, fs):
+    """
+    Calcula el tiempo de reverberación T60 desde una función de Schroeder suavizada.
+
+    Parámetros:
+    - schroeder_function: np.array, función de Schroeder suavizada.
+    - fs: int, frecuencia de muestreo en Hz.
+
+    Retorna:
+    - t60: float, tiempo de reverberación T60 en segundos.
+    """
+    # Calcula la integral de Schroeder
+    schroeder_integral = np.cumsum(schroeder_function[::-1]**2)[::-1]
+
+    # Encuentra el tiempo en el que la integral cruza 0 dB
+    threshold = 0  # Puedes ajustar este valor según las especificaciones de la ISO 3382
+    idx_crossing = np.where(schroeder_integral <= threshold)[0][0]
+
+    # Convierte el índice a tiempo en segundos
+    time_crossing = idx_crossing / fs
+
+    # El T60 es nueve veces el tiempo en que la integral cruza 0 dB
+    t60 = 9 * time_crossing
+
+    return t60
+# Ejemplo de uso:
+# Supongamos que tienes la función de Schroeder suavizada y la frecuencia de muestreo
+schroeder_function = ...  # Reemplaza con tu función de Schroeder
+fs = ...  # Reemplaza con tu frecuencia de muestreo
+# Calculate the T60
+t60 = calculate_t60(integral_schroeder, fs)
+# Imprime el resultado
+print("T60:", t60, "segundos")
+
+def calculate_c80(schroeder_function, fs):
+    """
+    Calcula el C80 desde una función de Schroeder suavizada.
+
+    Parámetros:
+    - schroeder_function: np.array, función de Schroeder suavizada.
+    - fs: int, frecuencia de muestreo en Hz.
+
+    Retorna:
+    - c80: float, C80 en dB.
+    """
+    # Calcula la integral de Schroeder
+    schroeder_integral = np.cumsum(schroeder_function[::-1]**2)[::-1]
+
+    # Encuentra el tiempo en el que la integral cruza 0 dB
+    threshold = 0  # Puedes ajustar este valor según las especificaciones de la ISO 3382
+    idx_crossing = np.where(schroeder_integral <= threshold)[0][0]
+
+    # Calcula la integral de Schroeder entre 0 y 80 ms
+    idx_80ms = int(0.08 * fs)
+    schroeder_integral_80ms = np.cumsum(schroeder_function[idx_crossing:idx_crossing + idx_80ms]**2)
+
+    # Calcula el C80
+    c80 = 10 * np.log10(schroeder_integral[idx_crossing] / schroeder_integral_80ms[-1])
+
+    return c80
+# Ejemplo de uso:
+# Supongamos que tienes la función de Schroeder suavizada y la frecuencia de muestreo
+schroeder_function = ...  # Reemplaza con tu función de Schroeder
+fs = ...  # Reemplaza con tu frecuencia de muestreo
+# Calculate the C80
+c80 = calculate_c80(integral_schroeder, fs)
+# Imprime el resultado
+print("C80:", c80, "dB")
+
+def calculate_d50(schroeder_function, fs):
+    """
+    Calcula el D50 desde una función de Schroeder suavizada.
+
+    Parámetros:
+    - schroeder_function: np.array, función de Schroeder suavizada.
+    - fs: int, frecuencia de muestreo en Hz.
+
+    Retorna:
+    - d50: float, D50 en porcentaje.
+    """
+    # Calcula la integral de Schroeder
+    schroeder_integral = np.cumsum(schroeder_function[::-1]**2)[::-1]
+
+    # Encuentra el tiempo en el que la integral cruza 0 dB
+    threshold = 0  # Puedes ajustar este valor según las especificaciones de la ISO 3382
+    idx_crossing = np.where(schroeder_integral <= threshold)[0][0]
+
+    # Calcula la integral de Schroeder entre 0 y 50 ms
+    idx_50ms = int(0.05 * fs)
+    schroeder_integral_50ms = np.cumsum(schroeder_function[idx_crossing:idx_crossing + idx_50ms]**2)
+
+    # Calcula el D50
+    d50 = 100 * schroeder_integral_50ms[-1] / schroeder_integral[idx_crossing]
+
+    return d50
+# Ejemplo de uso:
+# Supongamos que tienes la función de Schroeder suavizada y la frecuencia de muestreo
+schroeder_function = ...  # Reemplaza con tu función de Schroeder
+fs = ...  # Reemplaza con tu frecuencia de muestreo
+# Calculate the D50
+d50 = calculate_d50(integral_schroeder, fs)
+# Imprime el resultado
+print("D50:", d50, "%")
+
+
