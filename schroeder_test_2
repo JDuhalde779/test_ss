@@ -1,33 +1,35 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import soundfile as sf
+import scipy.io.wavfile as wav
 
-
-def calculate_schroeder_integral(hA, lim=6):
+def calcular_schroeder_integral(p_t, lim=4):
     """
     Calcula la integral de Schroeder para una respuesta al impulso dada.
     Parameters:
-    - hA: np.array, respuesta al impulso suavizada.
+    - p_t: np.array, respuesta al impulso suavizada.
     Returns:
     - E: np.array, valores de la integral de Schroeder.
     """
     # Verificar que no haya valores nan o inf en la respuesta al impulso
-    if np.isnan(hA).any() or np.isinf(hA).any():
+    if np.isnan(p_t).any() or np.isinf(p_t).any():
         raise ValueError("La respuesta al impulso contiene valores no numéricos.")
-    # Crear el arreglo de tiempo
-    tau = np.arange(0, len(hA))
-    cut_lim = lim*44100
+    cut_lim = int(lim*fs)
+    print("cut_lim=",cut_lim)
     # Calcular la integral de Schroeder
-    E = np.sum(hA[:]**2) - np.cumsum(hA[:cut_lim]**2)
-    E = 10 * np.log10(E / np.sum(hA**2))
-    #E = 10 * np.log10(np.cumsum(hA[::-1]**2)[::-1] / np.sum(hA**2))
+    E = np.sum(p_t[:]**2) - np.cumsum(p_t[:cut_lim]**2)
+    E = 10 * np.log10(E / np.sum(p_t**2))
+    #E = 10* np.log10(np.sum(p_t[:]**2) - np.cumsum(p_t[:cut_lim]**2))
+    #E = 10 * np.log10(np.cumsum(p_t[cut_lim::-1]**2)[::-1] / np.sum(p_t**2))
+    E = E[:len(p_t)]
+
     return E
 
 # Calcular la integral de Schroeder
-hA, tasa_muestreo = sf.read(r"C:\Users\duhal\Documents\A Ing. de Sonido\signal-systems-\TP Señales\Mi repo para TP SyS\señal_filtrada_1000.wav")
-print ("longitud de hA",len(hA))
-# lim = int((len(hA))/tasa_muestreo)
-integral_schroeder = calculate_schroeder_integral(hA)
+p_t, fs = sf.read("señal_filtrada_1000.wav")
+print ("longitud de p_t",len(p_t))
+lim = int((len(p_t))/fs)
+integral_schroeder = calcular_schroeder_integral(p_t)
 print("longitud schroeder", len(integral_schroeder))
 sf.write("Audio_Schroeder.wav", integral_schroeder, 44100)
 # Imprimir el resultado
@@ -35,10 +37,10 @@ print(integral_schroeder)
 
 """""
 # Crear el arreglo de tiempo
-tau = np.arange(0, len(hA))
+tau = np.arange(0, len(p_t))
 # Graficar la señal original y la integral de Schroeder
 plt.subplot(2, 1, 1)
-plt.plot(tau, hA, label='Respuesta al Impulso Suavizada')
+plt.plot(tau, p_t, label='Respuesta al Impulso Suavizada')
 plt.title('Señal Original')
 plt.xlabel('Tiempo')
 plt.ylabel('Amplitud')
@@ -129,7 +131,7 @@ def plot_dominio_temporal(señal, fs=44100, inicio=None, duracion=None, umbral_a
     plt.grid(True)
     plt.show()
 
-señal = sf.read("1st_baptist_nashville_balcony_mono_copy.wav")
+señal, fs = sf.read("1st_baptist_nashville_balcony_mono_copy.wav")
 plot = plot_dominio_temporal(señal)
 
 def plot_dominio_temporal2(señal1, señal2, fs=44100, inicio=None, duracion=None, umbral_amplitud=None):
@@ -187,7 +189,7 @@ def plot_dominio_temporal2(señal1, señal2, fs=44100, inicio=None, duracion=Non
     plt.show()
 
 # Normaliza la señal
-normalized_audio = convertir_audio_a_escala_logaritmica(hA)
+normalized_audio = convertir_audio_a_escala_logaritmica(p_t)
 plot_dominio_temporal2(normalized_audio, integral_schroeder, fs=44100)
 
 
@@ -344,8 +346,12 @@ t30 = calcular_t30(integral_schroeder, fs)
 print("T30:", t30, "segundos")
 
 # D50
-t_50 = int(0.05 * fs)  
-D50 = np.sum(np.power(integral_schroeder,2)[0:t_50]) / np.sum(np.power(integral_schroeder,2))
+t_50 = int(0.05 * fs) 
+integral_t_50 =  np.sum(np.power(integral_schroeder,2)[0:t_50])
+print("Valor de la integral de cero hasta 50ms=",integral_t_50)
+integral_total = np.sum(np.power(integral_schroeder,2))
+print("Valor de la integral total=",integral_total)
+D50 = integral_t_50 / integral_total
 print("D50", D50,"%")
 
 t_80 = int(0.08 * fs)

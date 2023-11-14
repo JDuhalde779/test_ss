@@ -1,0 +1,89 @@
+import scipy.io.wavfile as wav
+import numpy as np
+import soundfile as sf
+import matplotlib.pyplot as plt
+import scipy.signal as signal
+def iec61260_filtros(audio_signal, center_frequency, tipo_de_filtro, sample_rate=44100):
+    # Lista de frecuencias centrales según la norma IEC61260 para octavas y tercios de octava
+    center_frequencies = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000]
+    frecuencias_centrales_tercio = [25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000]
+
+    if tipo_de_filtro == "octava":
+        if center_frequency in center_frequencies:
+            G = 1.0 / 2.0
+            factor = np.power(2, G)
+            center_frequency_hz = center_frequency
+
+            lower_cutoff_frequency_hz = center_frequency_hz / factor
+            upper_cutoff_frequency_hz = center_frequency_hz * factor
+
+            sos = signal.iirfilter(4, [lower_cutoff_frequency_hz, upper_cutoff_frequency_hz],
+                                   rs=60, btype='band', analog=False,
+                                   ftype='butter', fs=sample_rate, output='sos')
+            filtered_signal = signal.sosfilt(sos, audio_signal)
+
+            # Devolver la señal filtrada
+            return filtered_signal
+
+        else:
+            print("Se ha ingresado un valor de frecuencia inválido")
+            return None
+
+    if tipo_de_filtro == "tercio":
+        if center_frequency in frecuencias_centrales_tercio:
+            G = 1.0 / 6.0
+            factor = np.power(2, G)
+            center_frequency_hz = center_frequency
+
+            lower_cutoff_frequency_hz = center_frequency_hz / factor
+            upper_cutoff_frequency_hz = center_frequency_hz * factor
+
+            sos = signal.iirfilter(4, [lower_cutoff_frequency_hz, upper_cutoff_frequency_hz],
+                                   rs=60, btype='band', analog=False,
+                                   ftype='butter', fs=sample_rate, output='sos')
+            filtered_signal = signal.sosfilt(sos, audio_signal)
+
+            # Devolver la señal filtrada
+            return filtered_signal
+
+        else:
+            print("Se ha ingresado un valor de frecuencia inválido")
+            return None
+
+
+
+#for i in frecuencias_centrales: #Se puede modificar en caso que se desee el filtro en tercio de octavas
+#    iec61260_filtros(audio_signal,i, sample_rate)
+
+def filtro_promedio_movil(input_signal, output_file, L, sample_rate):
+    # Aplicar el filtro de promedio móvil
+    filtered_signal = np.zeros_like(input_signal, dtype=np.float64)
+
+    for i in range(L, len(input_signal)):
+        filtered_signal[i] = (1/L) * np.sum(input_signal[i-L+1:i+1])
+
+    # Guardar la señal filtrada en un archivo WAV de salida
+    sf.write(output_file, filtered_signal, sample_rate)
+
+
+# Llamar a la función con alguna RI generada anteriormente.
+#audio_signal, sample_rate = sf.read('\Users\Educacion\Desktop\Test funcion filtrosruidoRosa.wav')
+audio_signal, sample_rate = sf.read("concert_hall_york_university\\rir_jack_lyons_lp1_96k_mono.wav")
+frecuencias_centrales = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000]
+frecuencias_centrales_tercio = [25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000]
+tipo_de_filtro = "octava"
+# Crear un diccionario para almacenar las señales filtradas
+signals = {}
+print (signals)
+
+# Iterar sobre las frecuencias centrales y aplicar los filtros
+for center_frequency in frecuencias_centrales:
+    filtered_signal = iec61260_filtros(audio_signal, center_frequency, tipo_de_filtro, sample_rate)
+    signals[center_frequency] = filtered_signal
+
+# Aplicar el filtro de promedio móvil y guardar las señales filtradas
+L = 100  # Número de muestras para el promedio móvil
+
+for center_frequency, filtered_signal in signals.items():
+    output_file = f"salida_filtrada_{center_frequency}_fpm.wav"
+    filtro_promedio_movil(filtered_signal, output_file, L, sample_rate)

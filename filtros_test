@@ -71,19 +71,19 @@ def iec61260_filtros(audio_signal, center_frequency, sample_rate=44100):
         print("Se ha ingresado un valor de frecuencia inválido")
 
 # Llamar a la función con alguna RI generada anteriormente.
-audio_signal, sample_rate = sf.read("1st_baptist_nashville_balcony_mono_copy.wav")
+audio_signal, sample_rate = sf.read("concert_hall_york_university\\rir_jack_lyons_lp1_96k_mono.wav")
 frecuencias_centrales = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000]
 for i in frecuencias_centrales:
     iec61260_filtros(audio_signal,i, sample_rate=44100)
 
 
-
+"""
 # Especifica la ruta del archivo de entrada y salida, y la nueva duración deseada en segundos
 archivo_entrada = "1st_baptist_nashville_balcony_mono copy.wav"
 archivo_salida = "impulso_recortado.wav"
 duracion_deseada = 5  # Por ejemplo, 10 segundos
 acortar_wav(archivo_entrada, archivo_salida, duracion_deseada)
-
+"""
 
 def filtro_promedio_movil(input_file, output_file, L):
     # Leer el archivo WAV de entrada
@@ -99,7 +99,7 @@ def filtro_promedio_movil(input_file, output_file, L):
     wav.write(output_file, sample_rate, filtered_signal.astype(np.int16))
 
 
-input_file = "impulso_recortado.wav"
-output_file = "salida_filtrada.wav"
+input_file = "señal_filtrada_1000.wav"
+output_file = "salida_filtrada_1000_fpm.wav"
 L = 100 # Número de muestras para el promedio móvil
 filtro_promedio_movil(input_file, output_file, L)

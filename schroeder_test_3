@@ -2,43 +2,33 @@ import numpy as np
 import matplotlib.pyplot as plt
 import soundfile as sf
 
-def schroeder(signal, lim=6):
+def schroeder(signal, lim=4):
     """
-    Calcula la integral de Schroeder de una RI.
-     Parametros
-    ----------
-    signal:
-
-
-    lim:
-
-
-    Ejemplo
-    -------
-    import numpy as np
-    import soundfile as sf
-    from scipy import signal as s
-   
-    signal, fs = sf.read('impulso_aula2.wav')
-    lim = int(len(signal)/fs)
-    schroeder(signal, lim)
+    Calcula la integral de Schroeder.
+    Parameters:
+    signal (np.array): Array de la señal de audio.
+    lim (int): Límite de la integral de Schroeder en segundos.
+    Returns:
+    numpy.ndarray: El array de la integral de Schroeder.
     """
-    cut_lim = lim*44100
+    cut_lim = int(lim*fs)
+    print("cut_lim=",cut_lim)
     #E = 10 * np.log10(np.cumsum(signal[::-1]**2)[::-1] / np.sum(signal**2))
-    E = (10*np.log10(np.cumsum(np.power(signal[cut_lim::-1],2))/np.sum(np.power(signal[:cut_lim],2))))[::-1]
+    E = (10*np.log10(np.cumsum(np.power(signal[cut_lim::-1],2))/np.sum(np.power(signal[:],2))))[::-1]
     #E = np.cumsum(np.power(signal[150000::-1],2))[::-1]
     E = E[:len(signal)]
-    return(E)
+    return E
 
-signal, fs = sf.read("")
-lim = (int(len(signal)/fs))-100
+signal, fs = sf.read("señal_filtrada_1000.wav")
+lim = (int(len(signal))/fs)
 print("lim:",lim)
 print("len de signal",len(signal))
-integral_schroeder = schroeder(signal)
+integral_schroeder = schroeder(signal,lim)
 # Imprimir el resultado
 print("longitud de la señal:", len(signal))
 print("longitud de schroeder", len(integral_schroeder))
 print(integral_schroeder)
+
 
 """
 # Crear el arreglo de tiempo
@@ -314,7 +304,7 @@ def calculate_d50(schroeder, fs):
     integral_0_05 = np.sum(schroeder[:idx_0_05]**2) 
     integral_inf = np.sum(np.nan_to_num(schroeder[idx_0_05:idx_inf])**2) 
 
-    print("Integrales:", integral_0_05, integral_inf)
+    print("Integrales:", integral_0_05,";" ,integral_inf)
 
     # Calcular el parámetro D50
     d50 = integral_0_05 / integral_inf
