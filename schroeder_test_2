@@ -18,13 +18,13 @@ def calculate_schroeder_integral(hA, lim=6):
     tau = np.arange(0, len(hA))
     cut_lim = lim*44100
     # Calcular la integral de Schroeder
-    #E = np.sum(hA[:]**2) - np.cumsum(hA[:cut_lim]**2)
-    #E = 10 * np.log10(E / np.sum(hA**2))
-    E = 10 * np.log10(np.cumsum(hA[::-1]**2)[::-1] / np.sum(hA**2))
+    E = np.sum(hA[:]**2) - np.cumsum(hA[:cut_lim]**2)
+    E = 10 * np.log10(E / np.sum(hA**2))
+    #E = 10 * np.log10(np.cumsum(hA[::-1]**2)[::-1] / np.sum(hA**2))
     return E
 
 # Calcular la integral de Schroeder
-hA, tasa_muestreo = sf.read("1st_baptist_nashville_balcony_mono copy.wav")
+hA, tasa_muestreo = sf.read(r"C:\Users\duhal\Documents\A Ing. de Sonido\signal-systems-\TP Señales\Mi repo para TP SyS\señal_filtrada_1000.wav")
 print ("longitud de hA",len(hA))
 # lim = int((len(hA))/tasa_muestreo)
 integral_schroeder = calculate_schroeder_integral(hA)
@@ -33,7 +33,7 @@ sf.write("Audio_Schroeder.wav", integral_schroeder, 44100)
 # Imprimir el resultado
 print(integral_schroeder)
 
-
+"""""
 # Crear el arreglo de tiempo
 tau = np.arange(0, len(hA))
 # Graficar la señal original y la integral de Schroeder
@@ -51,7 +51,7 @@ plt.ylabel('Amplitud (dB)')
 plt.legend()
 plt.tight_layout()
 plt.show()
-
+"""
 
 def convertir_audio_a_escala_logaritmica(señal_audio):
     """
@@ -70,6 +70,67 @@ def convertir_audio_a_escala_logaritmica(señal_audio):
     audio_log = 20 * np.log10(np.abs(audio_data))
 
     return audio_log
+
+def plot_dominio_temporal(señal, fs=44100, inicio=None, duracion=None, umbral_amplitud=None):
+    """
+    Muestra el dominio temporal de la señal con un umbral de amplitud.
+
+    Parámetros
+    ----------
+    señal : str o NumPy array
+        Si es una cadena (str), se asume que es una ruta al archivo de audio WAV.
+        Si es un NumPy array, se asume que es la señal directa.
+    fs : int
+        Frecuencia de muestreo en Hz de la señal.
+    inicio : float, opcional
+        Tiempo de inicio para la ventana en segundos.
+    duracion : float, opcional
+        Duración de la ventana en segundos.
+    umbral_amplitud : float, opcional
+        Umbral de amplitud para mostrar valores en el gráfico.
+
+    Retorna
+    -------
+    None
+    """
+    if isinstance(señal, str):  # Si es una cadena, se asume que es un archivo WAV
+        tasa_muestreo, audio_data = wav.read(señal)
+        fs = tasa_muestreo
+    else:  # Si es un NumPy array, se asume que es la señal directa
+        audio_data = señal
+
+    # Calcula los valores de tiempo
+    tiempo = np.arange(len(audio_data)) / fs
+
+    # Establece el índice de inicio y final
+    if inicio is None:
+        inicio = 0
+    if duracion is None:
+        duracion = tiempo[-1]
+
+    # Encuentra los índices correspondientes al inicio y final de la ventana
+    inicio_idx = int(inicio * fs)
+    fin_idx = int((inicio + duracion) * fs)
+
+    # Asegura que los índices estén dentro de los límites de la señal
+    inicio_idx = max(0, inicio_idx)
+    fin_idx = min(len(audio_data), fin_idx)
+
+    # Aplicar umbral de amplitud si se proporciona
+    if umbral_amplitud is not None:
+        audio_data[audio_data < umbral_amplitud] = umbral_amplitud
+
+    # Crea una nueva figura y plotea la señal en la ventana especificada
+    plt.figure(figsize=(10, 4))
+    plt.plot(tiempo[inicio_idx:fin_idx], audio_data[inicio_idx:fin_idx])
+    plt.title('Dominio Temporal de la Señal')
+    plt.xlabel('Tiempo (segundos)')
+    plt.ylabel('Amplitud')
+    plt.grid(True)
+    plt.show()
+
+señal = sf.read("1st_baptist_nashville_balcony_mono_copy.wav")
+plot = plot_dominio_temporal(señal)
 
 def plot_dominio_temporal2(señal1, señal2, fs=44100, inicio=None, duracion=None, umbral_amplitud=None):
     """
@@ -282,48 +343,15 @@ t30 = calcular_t30(integral_schroeder, fs)
 # Imprime el resultado
 print("T30:", t30, "segundos")
 
+# D50
+t_50 = int(0.05 * fs)  
+D50 = np.sum(np.power(integral_schroeder,2)[0:t_50]) / np.sum(np.power(integral_schroeder,2))
+print("D50", D50,"%")
 
+t_80 = int(0.08 * fs)
+C80 = 10* (np.log10(np.sum(np.power(integral_schroeder,2)[0:t_80]) / np.sum(np.power(integral_schroeder,2)[t_80:])))
+print("C80:", C80, "dB")
 
-def calculate_d50(schroeder, fs):
-    """
-    Calcula el parámetro D50 desde una función de Schroeder suavizada.
-
-    Parámetros:
-    - schroeder: np.array, función de Schroeder suavizada.
-    - fs: int, frecuencia de muestreo en Hz.
-
-    Retorna:
-    - d50: float, parámetro D50.
-    """
-    # Definir los límites de las integrales
-    t_0_05 = 0.05  # límite superior para la primera integral
-    t_inf = len(schroeder) / fs  # límite superior para la segunda integral
-
-    # Convertir los tiempos a índices
-    idx_0_05 = int(t_0_05 * fs)
-    idx_inf = len(schroeder)
-
-    print("Indices:", idx_0_05, idx_inf)
-
-    # Calcular las dos integrales utilizando np.sum y manejar NaN
-    integral_0_05 = np.sum(schroeder[:idx_0_05]**2) 
-    integral_inf = np.sum(np.nan_to_num(schroeder[idx_0_05:idx_inf])**2) 
-
-    print("Integrales:", integral_0_05, integral_inf)
-
-    # Calcular el parámetro D50
-    d50 = integral_0_05 / integral_inf
-
-    return d50
-
-# Ejemplo de uso:
-# Supongamos que tienes la función de Schroeder suavizada y la frecuencia de muestreo
-schroeder =  integral_schroeder 
-fs = 44100  # Reemplaza con tu frecuencia de muestreo
-# Calcular D50
-d50 = calculate_d50(integral_schroeder, fs)
-# Imprimir el resultado
-print("D50:", d50, "%")
 
 
 

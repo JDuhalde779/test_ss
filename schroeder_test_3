@@ -30,7 +30,7 @@ def schroeder(signal, lim=6):
     E = E[:len(signal)]
     return(E)
 
-signal, fs = sf.read(r"C:\Users\duhal\Documents\A Ing. de Sonido\signal-systems-\TP Señales\Mi repo para TP SyS\1st_baptist_nashville_balcony_mono copy.wav")
+signal, fs = sf.read("")
 lim = (int(len(signal)/fs))-100
 print("lim:",lim)
 print("len de signal",len(signal))

@@ -74,7 +74,8 @@ def plot_dominio_temporal(señal, fs=44100, inicio=None, duracion=None, umbral_a
     plt.grid(True)
     plt.show()
 
-
+señal = sf.read("1st_baptist_nashville_balcony_mono_copy.wav")
+plot = plot_dominio_temporal(señal)
 
 def acortar_wav(input_path, output_path, duracion_deseada):
     # Cargar el archivo WAV

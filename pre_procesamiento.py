@@ -85,6 +85,7 @@ def ruidoRosa_voss(t,ncols=16,fs=44100):
     
     return total
 
+
 # Genera el ruido rosa y lo almacena en 'audio'
 audio = ruidoRosa_voss(t, ncols=16, fs=44100)
 plt.plot(audio)
