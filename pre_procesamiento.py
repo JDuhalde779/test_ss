@@ -448,12 +448,12 @@ def iec61260_filtros(audio_signal, center_frequency, sample_rate=44100):
         print("Se ha ingresado un valor de frecuencia inválido")
 
 # Llamar a la función con alguna RI generada anteriormente.
-audio_signal, sample_rate = sf.read("respuesta_al_impulsoGENERADO.wav")
+audio_signal, sample_rate = sf.read("1st_baptist_nashville_balcony_mono copy.wav")
 iec61260_filtros(audio_signal,1000, sample_rate=44100)
 
 
 # Especifica la ruta del archivo de entrada y salida, y la nueva duración deseada en segundos
-archivo_entrada = "respuesta_al_impulsoGENERADO.wav"
+archivo_entrada = "1st_baptist_nashville_balcony_mono copy.wav"
 archivo_salida = "impulso_recortado.wav"
 duracion_deseada = 5  # Por ejemplo, 10 segundos
 acortar_wav(archivo_entrada, archivo_salida, duracion_deseada)
