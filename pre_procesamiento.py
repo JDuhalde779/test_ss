@@ -323,7 +323,7 @@ nombre_archivo = 'respuesta_al_impulso.wav'  # Nombre del archivo de salida
 
 
 #Reproducir la respuesta al impulso generada
-play(AudioSegment.from_wav(nombre_archivo))
+#play(AudioSegment.from_wav(nombre_archivo))
 
 def respuesta_al_impulso(sine_sweep_wav, filtro_inverso_wav, salida_wav):
     # Cargar los archivos .wav
@@ -372,14 +372,15 @@ def convertir_audio_a_escala_logaritmica(señal_audio):
 
     # Normalizar los valores de audio entre -1 y 1
     audio_data = audio_data.astype(np.float32) / 32767.0
+    epsilon = 1e-10
 
     # Aplicar la conversión logarítmica
-    audio_log = 20 * np.log10(np.abs(audio_data))
+    audio_log = 20 * np.log10(np.abs(audio_data + epsilon))
 
     return audio_log
 
 
-señal_audio = "respuesta_al_impulsoGENERADO.wav"
+señal_audio = "1st_baptist_nashville_balcony_mono_copy.wav"
 audio_log = convertir_audio_a_escala_logaritmica(señal_audio)
 
 
@@ -448,8 +449,11 @@ def iec61260_filtros(audio_signal, center_frequency, sample_rate=44100):
         print("Se ha ingresado un valor de frecuencia inválido")
 
 # Llamar a la función con alguna RI generada anteriormente.
-audio_signal, sample_rate = sf.read("1st_baptist_nashville_balcony_mono copy.wav")
-iec61260_filtros(audio_signal,1000, sample_rate=44100)
+audio_signal, sample_rate = sf.read("1st_baptist_nashville_balcony_mono_copy.wav")
+frecuencias_centrales = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000]
+for i in frecuencias_centrales:
+    iec61260_filtros(audio_signal,i, sample_rate=44100)
+
 
 
 # Especifica la ruta del archivo de entrada y salida, y la nueva duración deseada en segundos
