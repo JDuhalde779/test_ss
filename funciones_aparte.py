@@ -75,7 +75,7 @@ def plot_dominio_temporal(señal, fs=44100, inicio=None, duracion=None, umbral_a
     plt.show()
 
 señal = sf.read("1st_baptist_nashville_balcony_mono_copy.wav")
-plot = plot_dominio_temporal(señal)
+#plot = plot_dominio_temporal(señal)
 
 def acortar_wav(input_path, output_path, duracion_deseada):
     # Cargar el archivo WAV
@@ -88,10 +88,10 @@ def acortar_wav(input_path, output_path, duracion_deseada):
     audio_recortado.export(output_path, format="wav")
 
 # Especifica la ruta del archivo de entrada y salida, y la nueva duración deseada en segundos
-archivo_entrada = "respuesta_al_impulsoObtenida.wav"
+archivo_entrada = "salida_filtrada_1000_fpm.wav"
 archivo_salida = "impulso_recortado.wav"
-duracion_deseada = 5  # Por ejemplo, 10 segundos    
-
+duracion_deseada = 2  # Por ejemplo, 10 segundos    
+acortar_wav(archivo_entrada,archivo_salida,duracion_deseada)
 
 def iec61260_filtros(audio_signal, center_frequency, sample_rate=44100):
     """
@@ -162,8 +162,8 @@ def iec61260_filtros(audio_signal, center_frequency, sample_rate=44100):
 # Llamar a la función con alguna RI generada anteriormente.
 audio_signal, sample_rate = sf.read("respuesta_al_impulsoDESCARGADOS.wav")
 frecuencias_centrales = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000]
-for i in frecuencias_centrales:
-    iec61260_filtros(audio_signal,i, sample_rate=44100)
+#for i in frecuencias_centrales:
+    #iec61260_filtros(audio_signal,i, sample_rate=44100)
 
 
 def stereo_a_mono_wav(archivo_entrada):

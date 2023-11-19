@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import soundfile as sf
-
+epsilon=1e-10
 def schroeder(signal, lim=4):
     """
     Calcula la integral de Schroeder.
@@ -14,12 +14,13 @@ def schroeder(signal, lim=4):
     cut_lim = int(lim*fs)
     print("cut_lim=",cut_lim)
     #E = 10 * np.log10(np.cumsum(signal[::-1]**2)[::-1] / np.sum(signal**2))
-    E = (10*np.log10(np.cumsum(np.power(signal[cut_lim::-1],2))/np.sum(np.power(signal[:],2))))[::-1]
+    E = (10*np.log10(np.cumsum(np.power(signal[cut_lim::-1],2))+ epsilon /np.sum(np.power(signal[:],2))))[::-1]
     #E = np.cumsum(np.power(signal[150000::-1],2))[::-1]
+    E[E < -80] = 0
     E = E[:len(signal)]
     return E
 
-signal, fs = sf.read("concert_hall_york_university//rir_jack_lyons_lp1_96k_mono.wav")
+signal, fs = sf.read("impulso_recortado.wav")
 lim = (int(len(signal))/fs)
 print("lim:",lim)
 print("len de signal",len(signal))
@@ -48,6 +49,7 @@ plt.ylabel('Amplitud (dB)')
 plt.legend()
 plt.tight_layout()
 plt.show()
+
 """
 
 def convertir_audio_a_escala_logaritmica(señal_audio):
