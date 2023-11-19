@@ -71,23 +71,29 @@ def ruidoRosa_voss(t,ncols=16,fs=44100):
     
     ## Centrado de el array en 0
     total = total - total.mean()
-    
-    ## Normalizado
-    valor_max = max(abs(max(total)),abs(min(total)))
-    total = total / valor_max
-    
-    # Agregar generación de archivo de audio .wav
-    sf.write('ruidoRosa.wav', total, fs)
-    
-    ## Plot de total en cantidad de muestras (t*fs)
-    plt.plot(total)
+   
 
     
     return total
 
 
 # Genera el ruido rosa y lo almacena en 'audio'
-audio = ruidoRosa_voss(t, ncols=16, fs=44100)
+ruido_rosa = ruidoRosa_voss(t, ncols=16, fs=44100)
+def normalizado_audio(ruido_rosa):
+     
+    ## Normalizado
+    valor_max = max(abs(max(ruido_rosa)),abs(min(ruido_rosa)))
+    ruido_rosa = ruido_rosa / valor_max
+    
+    # Agregar generación de archivo de audio .wav
+    sf.write('ruidoRosa.wav', ruido_rosa, fs)
+    
+    ## Plot de total en cantidad de muestras (t*fs)
+    plt.plot(ruido_rosa)
+
+    return ruido_rosa
+
+audio = normalizado_audio(ruido_rosa)
 plt.plot(audio)
 plt.show()
 dominio = plot_dominio_temporal(audio, 44100)
@@ -367,6 +373,7 @@ def convertir_audio_a_escala_logaritmica(señal_audio):
     """
     # Cargar el archivo de audio .wav
     tasa_muestreo, audio_data = wav.read(señal_audio)
+    
 
     # Normalizar los valores de audio entre -1 y 1
     audio_data = audio_data.astype(np.float32) / 32767.0
@@ -493,16 +500,18 @@ def filtro_promedio_movil(input_file, output_file, L):
 input_file = "impulso_recortado.wav"
 output_file = "salida_filtrada.wav"
 L = 100 # Número de muestras para el promedio móvil
-filtro_promedio_movil(input_file, output_file, L)
-"""
+#filtro_promedio_movil(input_file, output_file, L)
 
+
+epsilon=1e-10
+def schroeder(signal, lim=4):
 def calcular_schroeder_integral(p_t, lim=4):
     """
-    Calcula la integral de Schroeder para una respuesta al impulso dada.
+    Calcula la integral de Schroeder.
     Parameters:
     - p_t: np.array, respuesta al impulso suavizada.
     Returns:
-    - E: np.array, valores de la integral de Schroeder.
+    numpy.ndarray: El array de la integral de Schroeder.
     """
     # Verificar que no haya valores nan o inf en la respuesta al impulso
     if np.isnan(p_t).any() or np.isinf(p_t).any():
@@ -526,6 +535,333 @@ integral_schroeder = calcular_schroeder_integral(p_t)
 print("longitud schroeder", len(integral_schroeder))
 sf.write("Audio_Schroeder.wav", integral_schroeder, 44100)
 # Imprimir el resultado
+print("longitud de la señal:", len(signal))
+print("longitud de schroeder", len(integral_schroeder))
 print(integral_schroeder)
 
+
+"""
+# Crear el arreglo de tiempo
+tau = np.arange(0, len(signal))
+# Graficar la señal original y la integral de Schroeder
+plt.subplot(2, 1, 1)
+plt.plot(tau, signal, label='Respuesta al Impulso Suavizada')
+plt.title('Señal Original')
+plt.xlabel('Tiempo')
+plt.ylabel('Amplitud')
+plt.legend()
+plt.subplot(2, 1, 2)
+plt.plot(tau, integral_schroeder, label='Integral de Schroeder')
+plt.title('Integral de Schroeder')
+plt.xlabel('Tiempo')
+plt.ylabel('Amplitud (dB)')
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+"""
+
+
+
+def plot_dominio_temporal2(señal1, señal2, fs=44100, inicio=None, duracion=None, umbral_amplitud=None):
+    """
+    Muestra el dominio temporal de la señal con un umbral de amplitud.
+
+    Parámetros
+    ----------
+    señal : np.array
+        Array que representa la señal de audio.
+    fs : int
+        Frecuencia de muestreo en Hz de la señal.
+    inicio : float, opcional
+        Tiempo de inicio para la ventana en segundos.
+    duracion : float, opcional
+        Duración de la ventana en segundos.
+    umbral_amplitud : float, opcional
+        Umbral de amplitud para mostrar valores en el gráfico.
+
+    Retorna
+    -------
+    None
+    """
+    # Calcula los valores de tiempo
+    tiempo = np.arange(len(señal1)) / fs
+    tiempo2 = np.arange(len(señal2)) / fs
+
+    # Establece el índice de inicio y final
+    if inicio is None:
+        inicio = 0
+    if duracion is None:
+        duracion = tiempo[-1]
+
+    # Encuentra los índices correspondientes al inicio y final de la ventana
+    inicio_idx = int(inicio * fs)
+    fin_idx = int((inicio + duracion) * fs)
+
+    # Asegura que los índices estén dentro de los límites de la señal
+    inicio_idx = max(0, inicio_idx)
+    fin_idx = min(len(señal1), fin_idx)
+    fin_idx2 = min(len(señal2), fin_idx)
+
+    # Aplicar umbral de amplitud si se proporciona
+    if umbral_amplitud is not None:
+        señal1[señal1 < umbral_amplitud] = umbral_amplitud
+
+    # Crea una nueva figura y plotea la señal en la ventana especificada
+    plt.figure(figsize=(10, 4))
+    plt.plot(tiempo[inicio_idx:fin_idx], señal1[inicio_idx:fin_idx])
+    plt.plot(tiempo[inicio_idx:fin_idx2], señal2[inicio_idx:fin_idx2])
+    plt.title('Dominio Temporal de la Señal')
+    plt.xlabel('Tiempo (segundos)')
+    plt.ylabel('Amplitud')
+    plt.grid(True)
+    plt.show()
+
+
+
+
+def convertir_audio_a_escala_logaritmica2(señal_audio):
+    """
+    Convierte un archivo de audio en escala logarítmica y devuelve el resultado como un array.
+
+    Parámetros:
+    señal_audio (np.array): Array de la señal de audio.
+
+    Retorna:
+    numpy.ndarray: El array de la señal en escala logarítmica.
+    """
+    # Normalizar los valores de audio entre -1 y 1
+    audio_data = señal_audio.astype(np.float32) / np.max(np.abs(señal_audio))
+
+    # Aplicar la conversión logarítmica
+    audio_log = 20 * np.log10(np.abs(audio_data))
+
+    return audio_log
+# Normaliza la señal
+normalized_audio = convertir_audio_a_escala_logaritmica2(signal)
+plot_dominio_temporal2(normalized_audio, integral_schroeder, fs=44100)
+
+def calcular_edt(schroeder, fs):
+    """
+    Calcula el tiempo de reverberación EDT desde una función de Schroeder suavizada.
+
+    Parámetros:
+    - schroeder: np.array, función de Schroeder suavizada.
+    - fs: int, frecuencia de muestreo en Hz.
+
+    Retorna:
+    - edt: float, tiempo de reverberación EDT en segundos.
+    """
+    
+
+    # Encuentra el tiempo en el que la integral cruza -10 dB
+    umbral = -10  # Puedes ajustar este valor según las especificaciones de la ISO 3382
+    indice_cruce = np.where(schroeder <= umbral)[0]
+    print("Indice de cruce =", indice_cruce)
+    if indice_cruce.size > 0:
+        # Toma el primer índice de cruce
+        indice_cruce = indice_cruce[0]
+
+        # Convierte el índice a tiempo en segundos
+        tiempo_cruce = indice_cruce / fs
+
+        print("Tiempo de cruce =", tiempo_cruce)
+
+        # El EDT es seis veces el tiempo en que la integral cruza -10 dB
+        edt = 6 * tiempo_cruce
+    
+    else:
+        # No se encontró ningún índice que cumpla con el umbral
+        edt = 0  # O cualquier otro valor que desees asignar
+
+    return edt
+# Ejemplo de uso:
+# Supongamos que tienes la función de Schroeder suavizada y la frecuencia de muestreo
+schroeder = integral_schroeder  # Reemplaza con tu función de Schroeder
+fs = 44100  # Reemplaza con tu frecuencia de muestreo
+# Calculate the EDT
+edt = calcular_edt(integral_schroeder, fs)
+# Imprime el resultado
+print("EDT:", edt, "segundos")
+
+def calcular_t10(schroeder, fs):
+    """
+    Calcula el tiempo de reverberación T10 desde una función de Schroeder suavizada.
+
+    Parámetros:
+    - schroeder: np.array, función de Schroeder suavizada.
+    - fs: int, frecuencia de muestreo en Hz.
+
+    Retorna:
+    - t10: float, tiempo de reverberación T10 en segundos.
+    """
+    # Encuentra el tiempo en el que la integral cruza -5 dB
+    umbral_A= -5  # Puedes ajustar este valor según las especificaciones de la ISO 3382
+    umbral_B = -15
+    indice_cruce_5 = np.where(schroeder <= umbral_A)[0]
+    indice_cruce_15 = np.where(schroeder <= umbral_B)[0]
+
+    # Toma el primer índice de cruce
+    indice_cruce_5 = indice_cruce_5[0]
+    indice_cruce_15 = indice_cruce_15[0]
+    
+    # Convierte el índice a tiempo en segundos
+    tiempo_cruce_5 = indice_cruce_5 / fs
+    tiempo_cruce_15 = indice_cruce_15 / fs
+    # La diferencia entre los dos cruces determina el tiempo de reverberación T10
+    t10 = tiempo_cruce_15 - tiempo_cruce_5
+    return t10
+
+# Supongamos que tienes la función de Schroeder suavizada y la frecuencia de muestreo
+schroeder = integral_schroeder  # Reemplaza con tu función de Schroeder
+fs = 44100  # Reemplaza con tu frecuencia de muestreo
+# Calculate the EDT
+t10 = calcular_t10(integral_schroeder, fs)
+# Imprime el resultado
+print("T10:", t10, "segundos")
+
+def calcular_t20(schroeder, fs):
+    """
+    Calcula el tiempo de reverberación T20 desde una función de Schroeder suavizada.
+
+    Parámetros:
+    - schroeder: np.array, función de Schroeder suavizada.
+    - fs: int, frecuencia de muestreo en Hz.
+
+    Retorna:
+    - t10: float, tiempo de reverberación T10 en segundos.
+    """
+    # Encuentra el tiempo en el que la integral cruza -5 dB
+    umbral_A= -5  # Puedes ajustar este valor según las especificaciones de la ISO 3382
+    umbral_B = -25
+    indice_cruce_5 = np.where(schroeder <= umbral_A)[0]
+    indice_cruce_25 = np.where(schroeder <= umbral_B)[0]
+
+    # Toma el primer índice de cruce
+    indice_cruce_5 = indice_cruce_5[0]
+    indice_cruce_25 = indice_cruce_25[0]
+    
+    # Convierte el índice a tiempo en segundos
+    tiempo_cruce_5 = indice_cruce_5 / fs
+    tiempo_cruce_25 = indice_cruce_25 / fs
+    # La diferencia entre los dos cruces determina el tiempo de reverberación T10
+    t20 = tiempo_cruce_25 - tiempo_cruce_5
+    return t20
+
+# Supongamos que tienes la función de Schroeder suavizada y la frecuencia de muestreo
+schroeder = integral_schroeder  # Reemplaza con tu función de Schroeder
+fs = 44100  # Reemplaza con tu frecuencia de muestreo
+# Calculate the EDT
+t20 = calcular_t20(integral_schroeder, fs)
+# Imprime el resultado
+print("T20:", t20, "segundos")
+
+def calcular_t30(schroeder, fs):
+    """
+    Calcula el tiempo de reverberación T30 desde una función de Schroeder suavizada.
+
+    Parámetros:
+    - schroeder: np.array, función de Schroeder suavizada.
+    - fs: int, frecuencia de muestreo en Hz.
+
+    Retorna:
+    - t30: float, tiempo de reverberación T30 en segundos.
+    """
+    # Encuentra el tiempo en el que la integral cruza -5 dB
+    umbral_A= -5  # Puedes ajustar este valor según las especificaciones de la ISO 3382
+    umbral_B = -35
+    indice_cruce_5 = np.where(schroeder <= umbral_A)[0]
+    indice_cruce_35 = np.where(schroeder <= umbral_B)[0]
+
+    # Toma el primer índice de cruce
+    indice_cruce_5 = indice_cruce_5[0]
+    indice_cruce_35 = indice_cruce_35[0]
+    
+    # Convierte el índice a tiempo en segundos
+    tiempo_cruce_5 = indice_cruce_5 / fs
+    tiempo_cruce_35 = indice_cruce_35 / fs
+    # La diferencia entre los dos cruces determina el tiempo de reverberación T10
+    t30 = tiempo_cruce_35 - tiempo_cruce_5
+    return t30
+
+# Supongamos que tienes la función de Schroeder suavizada y la frecuencia de muestreo
+schroeder = integral_schroeder  # Reemplaza con tu función de Schroeder
+fs = 44100  # Reemplaza con tu frecuencia de muestreo
+# Calcular T30
+t30 = calcular_t30(integral_schroeder, fs)
+# Imprime el resultado
+print("T30:", t30, "segundos")
+
+
+
+def calculate_d50(schroeder, fs):
+    """
+    Calcula el parámetro D50 desde una función de Schroeder suavizada.
+
+    Parámetros:
+    - schroeder: np.array, función de Schroeder suavizada.
+    - fs: int, frecuencia de muestreo en Hz.
+
+    Retorna:
+    - d50: float, parámetro D50.
+    """
+    # Definir los límites de las integrales
+    t_0_05 = 0.05  # límite superior para la primera integral
+    t_inf = len(schroeder) / fs  # límite superior para la segunda integral
+
+    # Convertir los tiempos a índices
+    idx_0_05 = int(t_0_05 * fs)
+    idx_inf = len(schroeder)
+
+    print("Indices:", idx_0_05, idx_inf)
+
+    # Calcular las dos integrales utilizando np.sum y manejar NaN
+    integral_0_05 = np.sum(schroeder[:idx_0_05]**2) 
+    integral_inf = np.sum(np.nan_to_num(schroeder[idx_0_05:idx_inf])**2) 
+
+    print("Integrales:", integral_0_05,";" ,integral_inf)
+
+    # Calcular el parámetro D50
+    d50 = integral_0_05 / integral_inf
+
+    return d50
+
+# Ejemplo de uso:
+# Supongamos que tienes la función de Schroeder suavizada y la frecuencia de muestreo
+schroeder =  integral_schroeder 
+fs = 44100  # Reemplaza con tu frecuencia de muestreo
+# Calcular D50
+d50 = calculate_d50(integral_schroeder, fs)
+# Imprimir el resultado
+print("D50:", d50, "%")
+
+
+
+def calculate_c80(integral_schroeder, fs, t=0.08):
+    """
+    Calcula el C80 a partir de la integral de Schroeder.
+    Parameters:
+    integral_schroeder (np.array): Array de la integral de Schroeder.
+    fs (int): Frecuencia de muestreo de la señal de audio.
+    t (float): Tiempo en segundos para el cálculo del C80 (por defecto, 80 ms).
+    Returns:
+    float: Valor de C80 en decibelios.
+    """
+    # Calcula el índice correspondiente al tiempo t
+    t_index = int(t * fs)
+
+    # Calcula la energía sonora temprana y tardía
+    early_energy = np.sum(integral_schroeder[:t_index])
+    late_energy = np.sum(integral_schroeder[t_index:])
+
+    # Calcula el C80 en decibelios
+    c80 = 10 * np.log10(early_energy / late_energy +  epsilon)
+
+    return c80
+
+# Llamada a la función para calcular el C80
+c80_value = calculate_c80(integral_schroeder, fs)
+
+# Imprimir el resultado
+print("C80:", c80_value)
 

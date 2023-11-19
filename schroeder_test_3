@@ -52,7 +52,7 @@ plt.show()
 
 """
 
-def convertir_audio_a_escala_logaritmica(señal_audio):
+def convertir_audio_a_escala_logaritmica2(señal_audio):
     """
     Convierte un archivo de audio en escala logarítmica y devuelve el resultado como un array.
 
@@ -124,8 +124,10 @@ def plot_dominio_temporal2(señal1, señal2, fs=44100, inicio=None, duracion=Non
     plt.grid(True)
     plt.show()
 
+
+
 # Normaliza la señal
-normalized_audio = convertir_audio_a_escala_logaritmica(signal)
+normalized_audio = convertir_audio_a_escala_logaritmica2(signal)
 plot_dominio_temporal2(normalized_audio, integral_schroeder, fs=44100)
 
 def calcular_edt(schroeder, fs):
