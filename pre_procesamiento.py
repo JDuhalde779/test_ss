@@ -197,7 +197,6 @@ output_file = 'filtro_inversoGENERADO.wav'  # Nombre del archivo de salida del f
 
 generar_filtro_inverso(input_file, output_file)
 
-
 def grabar_señal(señal, disp_entrada, disp_salida, duracion):
     """
     Reproducción y grabación de una señal en formato ".wav" en simultáneo.
@@ -243,7 +242,6 @@ def grabar_señal(señal, disp_entrada, disp_salida, duracion):
 
 señal = 'sine_sweep_log.wav'   
 grabar_señal(señal, 1, 2, 5)
-
 
    
 def cargar_archivos_de_audio(directorio):
@@ -501,10 +499,9 @@ input_file = "impulso_recortado.wav"
 output_file = "salida_filtrada.wav"
 L = 100 # Número de muestras para el promedio móvil
 #filtro_promedio_movil(input_file, output_file, L)
-
+"""
 
 epsilon=1e-10
-def schroeder(signal, lim=4):
 def calcular_schroeder_integral(p_t, lim=4):
     """
     Calcula la integral de Schroeder.
@@ -535,7 +532,7 @@ integral_schroeder = calcular_schroeder_integral(p_t)
 print("longitud schroeder", len(integral_schroeder))
 sf.write("Audio_Schroeder.wav", integral_schroeder, 44100)
 # Imprimir el resultado
-print("longitud de la señal:", len(signal))
+print("longitud de la señal:", len(p_t))
 print("longitud de schroeder", len(integral_schroeder))
 print(integral_schroeder)
 
@@ -638,7 +635,7 @@ def convertir_audio_a_escala_logaritmica2(señal_audio):
 
     return audio_log
 # Normaliza la señal
-normalized_audio = convertir_audio_a_escala_logaritmica2(signal)
+normalized_audio = convertir_audio_a_escala_logaritmica2(p_t)
 plot_dominio_temporal2(normalized_audio, integral_schroeder, fs=44100)
 
 def calcular_edt(schroeder, fs):
