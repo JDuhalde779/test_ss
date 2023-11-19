@@ -19,7 +19,7 @@ def schroeder(signal, lim=4):
     E = E[:len(signal)]
     return E
 
-signal, fs = sf.read("señal_filtrada_1000.wav")
+signal, fs = sf.read("concert_hall_york_university//rir_jack_lyons_lp1_96k_mono.wav")
 lim = (int(len(signal))/fs)
 print("lim:",lim)
 print("len de signal",len(signal))
