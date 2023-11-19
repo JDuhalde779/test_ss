@@ -191,6 +191,7 @@ output_file = 'filtro_inversoGENERADO.wav'  # Nombre del archivo de salida del f
 
 generar_filtro_inverso(input_file, output_file)
 
+
 def grabar_señal(señal, disp_entrada, disp_salida, duracion):
     """
     Reproducción y grabación de una señal en formato ".wav" en simultáneo.
@@ -214,11 +215,7 @@ def grabar_señal(señal, disp_entrada, disp_salida, duracion):
     sd.query_devices()
         
     Ejemplo
-    -------
-    import numpy as np
-    import soundfile as sf
-    import sounddevice as sd
-    
+    -------    
     señal = 'SineSweepLog.wav'
     disp_entrada = 1
     disp_salida = 9
@@ -381,89 +378,104 @@ def convertir_audio_a_escala_logaritmica(señal_audio):
     return audio_log
 
 
-señal_audio = "1st_baptist_nashville_balcony_mono_copy.wav"
+señal_audio = "concert_hall_york_university\\rir_jack_lyons_lp1_96k_mono.wav"
 audio_log = convertir_audio_a_escala_logaritmica(señal_audio)
 
 
-def iec61260_filtros(audio_signal, center_frequency, sample_rate=44100):
-    """
-   Aplica filtros acústicos según la norma IEC 61260 a una señal de audio.
-
-   Esta función toma una señal de audio, la frecuencia central deseada, y opcionalmente la frecuencia de muestreo,
-   y aplica un filtro acústico de octava o tercio de octava según la norma IEC 61260.
-   La función guarda la señal filtrada en un archivo WAV individual con un nombre apropiado para la frecuencia central.
-
-   Parámetros:
-   audio_signal (array): La señal de audio de entrada.
-   center_frequency (float): La frecuencia central a la cual se aplicará el filtro.
-   sample_rate (int, opcional): La frecuencia de muestreo de la señal de audio. Valor predeterminado: 44100.
-
-   La función guarda la señal filtrada en un archivo WAV individual con un nombre apropiado para la frecuencia central.
-   
-   Args:
-       audio_signal (array): La señal de audio de entrada.
-       center_frequency (float): La frecuencia central a la cual se aplicará el filtro.
-       sample_rate (int, opcional): La frecuencia de muestreo de la señal de audio.
-
-   Returns:
-       None
-   """
+def iec61260_filtros(audio_signal, center_frequency, tipo_de_filtro, sample_rate=44100):
     # Lista de frecuencias centrales según la norma IEC61260 para octavas y tercios de octava
     center_frequencies = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000]
     frecuencias_centrales_tercio = [25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000]
 
-    if center_frequency in center_frequencies:
-        G = 1.0 / 2.0  # Octava - G = 1.0/2.0 / 1/3 de Octava - G=1.0/6.0
-        factor = np.power(2, G)
-        center_frequency_hz = center_frequency
+    if tipo_de_filtro == "octava":
+        if center_frequency in center_frequencies:
+            G = 1.0 / 2.0
+            factor = np.power(2, G)
+            center_frequency_hz = center_frequency
 
-        lower_cutoff_frequency_hz = center_frequency_hz / factor
-        upper_cutoff_frequency_hz = center_frequency_hz * factor
+            lower_cutoff_frequency_hz = center_frequency_hz / factor
+            upper_cutoff_frequency_hz = center_frequency_hz * factor
 
-        # Para aplicar el filtro de manera más óptima
-        sos = signal.iirfilter(4, [lower_cutoff_frequency_hz, upper_cutoff_frequency_hz],
-                               rs=60, btype='band', analog=False,
-                               ftype='butter', fs=sample_rate, output='sos')
-        filtered_signal = signal.sosfilt(sos, audio_signal)
+            sos = signal.iirfilter(4, [lower_cutoff_frequency_hz, upper_cutoff_frequency_hz],
+                                   rs=60, btype='band', analog=False,
+                                   ftype='butter', fs=sample_rate, output='sos')
+            filtered_signal = signal.sosfilt(sos, audio_signal)
 
-        # Guarda la señal filtrada en un archivo individual
-        sf.write(f"señal_filtrada_{center_frequency}.wav", filtered_signal, sample_rate)
-    
-    if center_frequency in frecuencias_centrales_tercio:
-        G = 1.0 / 6.0  # Octava - G = 1.0/2.0 / 1/3 de Octava - G=1.0/6.0
-        factor = np.power(2, G)
-        center_frequency_hz = center_frequency
+            # Devolver la señal filtrada
+            return filtered_signal
 
-        lower_cutoff_frequency_hz = center_frequency_hz / factor
-        upper_cutoff_frequency_hz = center_frequency_hz * factor
+        else:
+            print("Se ha ingresado un valor de frecuencia inválido")
+            return None
 
-        # Para aplicar el filtro de manera más óptima
-        sos = signal.iirfilter(4, [lower_cutoff_frequency_hz, upper_cutoff_frequency_hz],
-                               rs=60, btype='band', analog=False,
-                               ftype='butter', fs=sample_rate, output='sos')
-        filtered_signal = signal.sosfilt(sos, audio_signal)
+    if tipo_de_filtro == "tercio":
+        if center_frequency in frecuencias_centrales_tercio:
+            G = 1.0 / 6.0
+            factor = np.power(2, G)
+            center_frequency_hz = center_frequency
 
-        # Guarda la señal filtrada en un archivo individual
-        sf.write(f"señal_filtrada_tercio_{center_frequency}.wav", filtered_signal, sample_rate)
-    
-    else:
-        print("Se ha ingresado un valor de frecuencia inválido")
+            lower_cutoff_frequency_hz = center_frequency_hz / factor
+            upper_cutoff_frequency_hz = center_frequency_hz * factor
+
+            sos = signal.iirfilter(4, [lower_cutoff_frequency_hz, upper_cutoff_frequency_hz],
+                                   rs=60, btype='band', analog=False,
+                                   ftype='butter', fs=sample_rate, output='sos')
+            filtered_signal = signal.sosfilt(sos, audio_signal)
+
+            # Devolver la señal filtrada
+            return filtered_signal
+
+        else:
+            print("Se ha ingresado un valor de frecuencia inválido")
+            return None
+
+
+
+#for i in frecuencias_centrales: #Se puede modificar en caso que se desee el filtro en tercio de octavas
+#    iec61260_filtros(audio_signal,i, sample_rate)
+
+def filtro_promedio_movil(input_signal, output_file, L, sample_rate):
+    # Aplicar el filtro de promedio móvil
+    filtered_signal = np.zeros_like(input_signal, dtype=np.float64)
+
+    for i in range(L, len(input_signal)):
+        filtered_signal[i] = (1/L) * np.sum(input_signal[i-L+1:i+1])
+
+    # Guardar la señal filtrada en un archivo WAV de salida
+    sf.write(output_file, filtered_signal, sample_rate)
+
 
 # Llamar a la función con alguna RI generada anteriormente.
-audio_signal, sample_rate = sf.read("1st_baptist_nashville_balcony_mono_copy.wav")
+#audio_signal, sample_rate = sf.read('\Users\Educacion\Desktop\Test funcion filtrosruidoRosa.wav')
+audio_signal, sample_rate = sf.read("concert_hall_york_university\\rir_jack_lyons_lp1_96k_mono.wav")
 frecuencias_centrales = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000]
-for i in frecuencias_centrales:
-    iec61260_filtros(audio_signal,i, sample_rate=44100)
+frecuencias_centrales_tercio = [25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000]
+tipo_de_filtro = "octava"
+# Crear un diccionario para almacenar las señales filtradas
+signals = {}
+print (signals)
+
+# Iterar sobre las frecuencias centrales y aplicar los filtros
+for center_frequency in frecuencias_centrales:
+    filtered_signal = iec61260_filtros(audio_signal, center_frequency, tipo_de_filtro, sample_rate)
+    signals[center_frequency] = filtered_signal
+
+# Aplicar el filtro de promedio móvil y guardar las señales filtradas
+L = 100  # Número de muestras para el promedio móvil
+
+for center_frequency, filtered_signal in signals.items():
+    output_file = f"salida_filtrada_{center_frequency}_fpm.wav"
+    filtro_promedio_movil(filtered_signal, output_file, L, sample_rate)
 
 
 
 # Especifica la ruta del archivo de entrada y salida, y la nueva duración deseada en segundos
-archivo_entrada = "1st_baptist_nashville_balcony_mono copy.wav"
-archivo_salida = "impulso_recortado.wav"
-duracion_deseada = 5  # Por ejemplo, 10 segundos
-acortar_wav(archivo_entrada, archivo_salida, duracion_deseada)
+#archivo_entrada = "1st_baptist_nashville_balcony_mono copy.wav"
+#archivo_salida = "impulso_recortado.wav"
+#duracion_deseada = 5  # Por ejemplo, 10 segundos
+# acortar_wav(archivo_entrada, archivo_salida, duracion_deseada)
 
-
+""""
 def filtro_promedio_movil(input_file, output_file, L):
     # Leer el archivo WAV de entrada
     sample_rate, audio_data = wav.read(input_file)
@@ -482,29 +494,36 @@ input_file = "impulso_recortado.wav"
 output_file = "salida_filtrada.wav"
 L = 100 # Número de muestras para el promedio móvil
 filtro_promedio_movil(input_file, output_file, L)
+"""
 
-
-def calculate_schroeder_integral(hA):
+def calcular_schroeder_integral(p_t, lim=4):
     """
     Calcula la integral de Schroeder para una respuesta al impulso dada.
     Parameters:
-    - hA: np.array, respuesta al impulso suavizada.
+    - p_t: np.array, respuesta al impulso suavizada.
     Returns:
     - E: np.array, valores de la integral de Schroeder.
     """
     # Verificar que no haya valores nan o inf en la respuesta al impulso
-    if np.isnan(hA).any() or np.isinf(hA).any():
+    if np.isnan(p_t).any() or np.isinf(p_t).any():
         raise ValueError("La respuesta al impulso contiene valores no numéricos.")
-    # Crear el arreglo de tiempo
-    tau = np.arange(0, len(hA))
+    cut_lim = int(lim*fs)
+    print("cut_lim=",cut_lim)
     # Calcular la integral de Schroeder
-    E = np.sum(hA[:]**2) - np.cumsum(hA[:]**2)
-    E = 10 * np.log10(E / np.sum(hA**2))
+    E = np.sum(p_t[:]**2) - np.cumsum(p_t[:cut_lim]**2)
+    E = 10 * np.log10(E / np.sum(p_t**2))
+    #E = 10* np.log10(np.sum(p_t[:]**2) - np.cumsum(p_t[:cut_lim]**2))
+    #E = 10 * np.log10(np.cumsum(p_t[cut_lim::-1]**2)[::-1] / np.sum(p_t**2))
+    E = E[:len(p_t)]
+
     return E
 
 # Calcular la integral de Schroeder
-hA, tasa_muestreo = sf.read("salida_filtrada.wav")
-integral_schroeder = calculate_schroeder_integral(hA)
+p_t, fs = sf.read("señal_filtrada_1000.wav")
+print ("longitud de p_t",len(p_t))
+lim = int((len(p_t))/fs)
+integral_schroeder = calcular_schroeder_integral(p_t)
+print("longitud schroeder", len(integral_schroeder))
 sf.write("Audio_Schroeder.wav", integral_schroeder, 44100)
 # Imprimir el resultado
 print(integral_schroeder)

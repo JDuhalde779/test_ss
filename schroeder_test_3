@@ -281,37 +281,14 @@ print("T30:", t30, "segundos")
 
 
 
-def calculate_d50(schroeder, fs):
-    """
-    Calcula el parámetro D50 desde una función de Schroeder suavizada.
-
-    Parámetros:
-    - schroeder: np.array, función de Schroeder suavizada.
-    - fs: int, frecuencia de muestreo en Hz.
-
-    Retorna:
-    - d50: float, parámetro D50.
-    """
-    # Definir los límites de las integrales
-    t_0_05 = 0.05  # límite superior para la primera integral
-    t_inf = len(schroeder) / fs  # límite superior para la segunda integral
-
-    # Convertir los tiempos a índices
-    idx_0_05 = int(t_0_05 * fs)
-    idx_inf = len(schroeder)
-
-    print("Indices:", idx_0_05, idx_inf)
-
-    # Calcular las dos integrales utilizando np.sum y manejar NaN
-    integral_0_05 = np.sum(schroeder[:idx_0_05]**2) 
-    integral_inf = np.sum(np.nan_to_num(schroeder[idx_0_05:idx_inf])**2) 
-
-    print("Integrales:", integral_0_05,";" ,integral_inf)
-
-    # Calcular el parámetro D50
-    d50 = integral_0_05 / integral_inf
-
-    return d50
+# D50
+t_50 = int(0.05 * fs) 
+integral_t_50 =  np.sum(np.power(integral_schroeder,2)[0:t_50])
+print("Valor de la integral de cero hasta 50ms=",integral_t_50)
+integral_total = np.sum(np.power(integral_schroeder,2))
+print("Valor de la integral total=",integral_total)
+D50 = integral_t_50 / integral_total
+print("D50", D50,"%")
 
 # Ejemplo de uso:
 # Supongamos que tienes la función de Schroeder suavizada y la frecuencia de muestreo
@@ -321,3 +298,7 @@ fs = 44100  # Reemplaza con tu frecuencia de muestreo
 d50 = calculate_d50(integral_schroeder, fs)
 # Imprimir el resultado
 print("D50:", d50, "%")
+
+t_80 = int(0.08 * fs)
+C80 = 10* (np.log10(np.sum(np.power(integral_schroeder,2)[0:t_80]) / np.sum(np.power(integral_schroeder,2)[t_80:])))
+print("C80:", C80, "dB")
