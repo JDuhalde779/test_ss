@@ -2,7 +2,45 @@ import numpy as np
 import matplotlib.pyplot as plt
 import soundfile as sf
 epsilon=1e-10
-def schroeder(signal, lim=4):
+
+def filtro_promedio_movil(signal, w_size=3):
+    '''
+    Calcula el promedio en un rango de valores de la señal original dado por w_size y los almacena en un array.
+    
+    Parametros
+    ----------
+    signal: Numpy array
+
+    w_size: Tamaño de la ventana de muestreo.
+           
+    return: Numpy array con los valores de promedio móvil.
+
+    Ejemplo
+    -------
+    import numpy as np
+    import soundfile as sf
+    
+    signal, fs = sf.read('SineSweepLog.wav')
+    filtro_promedio_movil(signal, w_size)
+    
+    '''
+    signal_win = [] # Inicio una lista donde se van a almacenar los promedios móviles
+
+    for i in range(len(signal)-(w_size-1)): # Ciclo for con rango hasta el ancho de la ventana
+        w_i = signal[i : i + w_size]    # Ventana que itera en cada ciclo
+        w_mean = np.mean(w_i)   # Calculo el promedio
+        signal_win.append(w_mean)   # Agrego el promedio a la lista signal_win
+    
+    for i in range(w_size-1):   # Ciclo para que shape(signal)=shape(signal_win) agregando el último valor promediado
+        signal_win.append(signal_win[-1])
+       
+    return(np.array(signal_win))   
+w_size = 3
+signal, fs = sf.read("señal_filtrada_1000.wav")
+filt_signal = filtro_promedio_movil(signal, w_size)
+filt_signal = sf.write("fpm_test_1000.wav", filt_signal, fs)
+
+def schroeder(p_t, lim=4):
     """
     Calcula la integral de Schroeder.
     Parameters:
@@ -11,46 +49,26 @@ def schroeder(signal, lim=4):
     Returns:
     numpy.ndarray: El array de la integral de Schroeder.
     """
+    p_t= p_t[:int(lim * fs)]
     cut_lim = int(lim*fs)
     print("cut_lim=",cut_lim)
-    #E = 10 * np.log10(np.cumsum(signal[::-1]**2)[::-1] / np.sum(signal**2))
-    E = (10*np.log10(np.cumsum(np.power(signal[cut_lim::-1],2))+ epsilon /np.sum(np.power(signal[:],2))))[::-1]
-    #E = np.cumsum(np.power(signal[150000::-1],2))[::-1]
-    E[E < -80] = 0
-    E = E[:len(signal)]
+    
+    E = np.sum(p_t[:]**2) - np.cumsum(p_t[:cut_lim]**2)
+    E = 10 * np.log10(E / np.sum(p_t**2))
+    
+
     return E
 
-signal, fs = sf.read("impulso_recortado.wav")
-lim = (int(len(signal))/fs)
+p_t, fs = sf.read("salida_filtrada_8000_fpm.wav")
+lim = (int(len(p_t))/fs)
 print("lim:",lim)
-print("len de signal",len(signal))
-integral_schroeder = schroeder(signal,lim)
+integral_schroeder = schroeder(p_t)
 # Imprimir el resultado
-print("longitud de la señal:", len(signal))
+print("longitud de la señal:", len(p_t))
 print("longitud de schroeder", len(integral_schroeder))
 print(integral_schroeder)
 
 
-"""
-# Crear el arreglo de tiempo
-tau = np.arange(0, len(signal))
-# Graficar la señal original y la integral de Schroeder
-plt.subplot(2, 1, 1)
-plt.plot(tau, signal, label='Respuesta al Impulso Suavizada')
-plt.title('Señal Original')
-plt.xlabel('Tiempo')
-plt.ylabel('Amplitud')
-plt.legend()
-plt.subplot(2, 1, 2)
-plt.plot(tau, integral_schroeder, label='Integral de Schroeder')
-plt.title('Integral de Schroeder')
-plt.xlabel('Tiempo')
-plt.ylabel('Amplitud (dB)')
-plt.legend()
-plt.tight_layout()
-plt.show()
-
-"""
 
 def convertir_audio_a_escala_logaritmica2(señal_audio):
     """
@@ -127,8 +145,8 @@ def plot_dominio_temporal2(señal1, señal2, fs=44100, inicio=None, duracion=Non
 
 
 # Normaliza la señal
-normalized_audio = convertir_audio_a_escala_logaritmica2(signal)
-plot_dominio_temporal2(normalized_audio, integral_schroeder, fs=44100)
+normalized_audio = convertir_audio_a_escala_logaritmica2(p_t)
+plot_dominio_temporal2(normalized_audio, integral_schroeder, fs)
 
 def calcular_edt(schroeder, fs):
     """
@@ -167,7 +185,6 @@ def calcular_edt(schroeder, fs):
 # Ejemplo de uso:
 # Supongamos que tienes la función de Schroeder suavizada y la frecuencia de muestreo
 schroeder = integral_schroeder  # Reemplaza con tu función de Schroeder
-fs = 44100  # Reemplaza con tu frecuencia de muestreo
 # Calculate the EDT
 edt = calcular_edt(integral_schroeder, fs)
 # Imprime el resultado
@@ -203,7 +220,7 @@ def calcular_t10(schroeder, fs):
 
 # Supongamos que tienes la función de Schroeder suavizada y la frecuencia de muestreo
 schroeder = integral_schroeder  # Reemplaza con tu función de Schroeder
-fs = 44100  # Reemplaza con tu frecuencia de muestreo
+  # Reemplaza con tu frecuencia de muestreo
 # Calculate the EDT
 t10 = calcular_t10(integral_schroeder, fs)
 # Imprime el resultado
@@ -239,7 +256,6 @@ def calcular_t20(schroeder, fs):
 
 # Supongamos que tienes la función de Schroeder suavizada y la frecuencia de muestreo
 schroeder = integral_schroeder  # Reemplaza con tu función de Schroeder
-fs = 44100  # Reemplaza con tu frecuencia de muestreo
 # Calculate the EDT
 t20 = calcular_t20(integral_schroeder, fs)
 # Imprime el resultado
@@ -295,11 +311,7 @@ print("D50", D50,"%")
 # Ejemplo de uso:
 # Supongamos que tienes la función de Schroeder suavizada y la frecuencia de muestreo
 schroeder =  integral_schroeder 
-fs = 44100  # Reemplaza con tu frecuencia de muestreo
-# Calcular D50
-d50 = calculate_d50(integral_schroeder, fs)
-# Imprimir el resultado
-print("D50:", d50, "%")
+
 
 t_80 = int(0.08 * fs)
 C80 = 10* (np.log10(np.sum(np.power(integral_schroeder,2)[0:t_80]) / np.sum(np.power(integral_schroeder,2)[t_80:])))

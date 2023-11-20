@@ -15,7 +15,6 @@ import scipy.io.wavfile as wav
 from scipy.fft import fft, ifft
 from funciones_aparte import plot_dominio_temporal
 from funciones_aparte import stereo_a_mono_wav
-from funciones_aparte import iec61260_filtros
 from funciones_aparte import acortar_wav
 from scipy.signal.windows import hamming
 
@@ -393,19 +392,47 @@ def iec61260_filtros(audio_signal, center_frequency, tipo_de_filtro, sample_rate
 #for i in frecuencias_centrales: #Se puede modificar en caso que se desee el filtro en tercio de octavas
 #    iec61260_filtros(audio_signal,i, sample_rate)
 
-def filtro_promedio_movil(input_signal, output_file, L, sample_rate):
-    # Aplicar el filtro de promedio móvil
-    filtered_signal = np.zeros_like(input_signal, dtype=np.float64)
+def filtro_promedio_movil(signal, w_size=3):
+    '''
+    Calcula el promedio en un rango de valores de la señal original dado por w_size y los almacena en un array.
+    
+    Parametros
+    ----------
+    signal: Numpy array
 
-    for i in range(L, len(input_signal)):
-        filtered_signal[i] = (1/L) * np.sum(input_signal[i-L+1:i+1])
+    w_size: Tamaño de la ventana de muestreo.
+           
+    return: Numpy array con los valores de promedio móvil.
 
+    Ejemplo
+    -------
+    import numpy as np
+    import soundfile as sf
+    
+    signal, fs = sf.read('SineSweepLog.wav')
+    filtro_promedio_movil(signal, w_size)
+    
+    '''
+    signal_win = [] # Inicio una lista donde se van a almacenar los promedios móviles
+
+    for i in range(len(signal)-(w_size-1)): # Ciclo for con rango hasta el ancho de la ventana
+        w_i = signal[i : i + w_size]    # Ventana que itera en cada ciclo
+        w_mean = np.mean(w_i)   # Calculo el promedio
+        signal_win.append(w_mean)   # Agrego el promedio a la lista signal_win
+    
+    for i in range(w_size-1):   # Ciclo para que shape(signal)=shape(signal_win) agregando el último valor promediado
+        signal_win.append(signal_win[-1])
+    
     # Guardar la señal filtrada en un archivo WAV de salida
     sf.write(output_file, filtered_signal, sample_rate)
+       
+    return(np.array(signal_win))
+
+    
 
 
 # Llamar a la función con alguna RI generada anteriormente o cargada.
-señal_audio, sample_rate = sf.read("concert_hall_york_university\\rir_jack_lyons_lp1_96k_mono.wav")
+señal_audio, sample_rate = sf.read("concert_hall_york_university//rir_jack_lyons_lp1_96k_mono.wav")
 frecuencias_centrales = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000]
 frecuencias_centrales_tercio = [25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000]
 tipo_de_filtro = "octava" # modificar segun el tipo de filtro que se desea.
@@ -418,76 +445,37 @@ for center_frequency in frecuencias_centrales:
     filtered_signal = iec61260_filtros(señal_audio, center_frequency, tipo_de_filtro, sample_rate)
     señales[center_frequency] = filtered_signal
 
-# Aplicar el filtro de promedio móvil y guardar las señales filtradas
-L = 100  # Número de muestras para el promedio móvil
-
 for center_frequency, filtered_signal in señales.items():
     output_file = f"salida_filtrada_{center_frequency}_fpm.wav"
-    filtro_promedio_movil(filtered_signal, output_file, L, sample_rate)
+    filtro_promedio_movil(filtered_signal)
 
 
-
-# Especifica la ruta del archivo de entrada y salida, y la nueva duración deseada en segundos
-#archivo_entrada = "1st_baptist_nashville_balcony_mono copy.wav"
-#archivo_salida = "impulso_recortado.wav"
-#duracion_deseada = 5  # Por ejemplo, 10 segundos
-# acortar_wav(archivo_entrada, archivo_salida, duracion_deseada)
-
-""""
-def filtro_promedio_movil(input_file, output_file, L):
-    # Leer el archivo WAV de entrada
-    sample_rate, audio_data = wav.read(input_file)
-   
-    # Aplicar el filtro de promedio móvil
-    filtered_signal = np.zeros_like(audio_data, dtype=np.float64)
-
-    for i in range(L, len(audio_data)):
-        filtered_signal[i] = (1/L) * np.sum(audio_data[i-L+1:i+1])
-
-    # Guardar la señal filtrada en un archivo WAV de salida
-    wav.write(output_file, sample_rate, filtered_signal.astype(np.int16))
-
-
-input_file = "impulso_recortado.wav"
-output_file = "salida_filtrada.wav"
-L = 100 # Número de muestras para el promedio móvil
-#filtro_promedio_movil(input_file, output_file, L)
-"""
 
 epsilon=1e-10
 def calcular_schroeder_integral(p_t, lim=4):
     """
     Calcula la integral de Schroeder.
     Parameters:
-    - p_t: np.array, respuesta al impulso suavizada.
+    signal (np.array): Array de la señal de audio.
+    lim (int): Límite de la integral de Schroeder en segundos.
     Returns:
     numpy.ndarray: El array de la integral de Schroeder.
     """
-    # Tomar solo los primeros 4 segundos de la señal
-    p_t = p_t[:int(lim * fs)]
-
-    # Aplicar ventana de Hamming
-    window = hamming(len(p_t))
-    p_t = p_t * window
-    # Verificar que no haya valores nan o inf en la respuesta al impulso
-    if np.isnan(p_t).any() or np.isinf(p_t).any():
-        raise ValueError("La respuesta al impulso contiene valores no numéricos.")
+    
     cut_lim = int(lim*fs)
     print("cut_lim=",cut_lim)
-    # Calcular la integral de Schroeder
+    
     E = np.sum(p_t[:]**2) - np.cumsum(p_t[:cut_lim]**2)
     E = 10 * np.log10(E / np.sum(p_t**2))
-    #E = 10* np.log10(np.sum(p_t[:]**2) - np.cumsum(p_t[:cut_lim]**2))
-    #E = 10 * np.log10(np.cumsum(p_t[cut_lim::-1]**2)[::-1] / np.sum(p_t**2))
-    E = E[:len(p_t)]
+    
 
     return E
 
 # Calcular la integral de Schroeder
-p_t, fs = sf.read("señal_filtrada_1000.wav")
+p_t, fs = sf.read("salida_filtrada_1000_fpm.wav")
 print ("longitud de p_t",len(p_t))
 lim = int((len(p_t))/fs)
-integral_schroeder = calcular_schroeder_integral(p_t)
+integral_schroeder = calcular_schroeder_integral(p_t,lim)
 print("longitud schroeder", len(integral_schroeder))
 sf.write("Audio_Schroeder.wav", integral_schroeder, 44100)
 # Imprimir el resultado
@@ -550,10 +538,27 @@ def plot_dominio_temporal2(señal1, señal2, fs=44100, inicio=None, duracion=Non
     plt.grid(True)
     plt.show()
 
+def convertir_audio_a_escala_logaritmica2(señal_audio):
+    """
+    Convierte un archivo de audio en escala logarítmica y devuelve el resultado como un array.
+
+    Parámetros:
+    señal_audio (np.array): Array de la señal de audio.
+
+    Retorna:
+    numpy.ndarray: El array de la señal en escala logarítmica.
+    """
+    # Normalizar los valores de audio entre -1 y 1
+    audio_data = señal_audio.astype(np.float32) / np.max(np.abs(señal_audio))
+
+    # Aplicar la conversión logarítmica
+    audio_log = 20 * np.log10(np.abs(audio_data))
+
+    return audio_log
 
 
 # Normalizado y ploteo de la señal
-normalized_audio = convertir_audio_a_escala_logaritmica(p_t)
+normalized_audio = convertir_audio_a_escala_logaritmica2(p_t)
 plot_dominio_temporal2(normalized_audio, integral_schroeder, fs=44100)
 
 def calcular_edt(schroeder, fs):
@@ -593,7 +598,6 @@ def calcular_edt(schroeder, fs):
 # Ejemplo de uso:
 # Supongamos que tienes la función de Schroeder suavizada y la frecuencia de muestreo
 schroeder = integral_schroeder  # Reemplaza con tu función de Schroeder
-fs = 44100  # Reemplaza con tu frecuencia de muestreo
 # Calculate the EDT
 edt = calcular_edt(integral_schroeder, fs)
 # Imprime el resultado
@@ -766,11 +770,11 @@ def calculate_c80(integral_schroeder, fs, t=0.08):
     t_index = int(t * fs)
 
     # Calcula la energía sonora temprana y tardía
-    early_energy = np.sum(integral_schroeder[:t_index])
-    late_energy = np.sum(integral_schroeder[t_index:])
+    energia_temprana = np.sum(integral_schroeder[:t_index])
+    energia_tardia= np.sum(integral_schroeder[t_index:])
 
     # Calcula el C80 en decibelios
-    c80 = 10 * np.log10(early_energy / late_energy +  epsilon)
+    c80 = 10 * np.log10(energia_temprana / energia_tardia +  epsilon)
 
     return c80
 
@@ -779,4 +783,6 @@ c80_value = calculate_c80(integral_schroeder, fs)
 
 # Imprimir el resultado
 print("C80:", c80_value)
+
+
 
