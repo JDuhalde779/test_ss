@@ -3,7 +3,6 @@ import numpy as np
 import soundfile as sf
 import matplotlib.pyplot as plt
 import pandas as pd
-import wave
 import scipy.signal as signal
 from pydub import AudioSegment
 from scipy.signal import welch
@@ -72,13 +71,11 @@ def ruidoRosa_voss(t,ncols=16,fs=44100):
     
     ## Centrado de el array en 0
     total = total - total.mean()
-   
-
     
     return total
 
 
-# Genera el ruido rosa y lo almacena en 'audio'
+# Genera el ruido rosa y lo almacena en 'ruiso_rosa'
 ruido_rosa = ruidoRosa_voss(t, ncols=16, fs=44100)
 def normalizado_audio(ruido_rosa):
 
@@ -336,7 +333,7 @@ def convertir_audio_a_escala_logaritmica(señal_audio):
     return audio_log
 
 
-señal_audio, fs = sf.read("b-format_usina_del_arte\ir_z_m5.s1.wav")
+señal_audio, fs = sf.read("concert_hall_york_university//rir_jack_lyons_lp1_96k_mono.wav")
 audio_log = convertir_audio_a_escala_logaritmica(señal_audio)
 
 
@@ -388,10 +385,6 @@ def iec61260_filtros(audio_signal, center_frequency, tipo_de_filtro, sample_rate
             return None
 
 
-
-#for i in frecuencias_centrales: #Se puede modificar en caso que se desee el filtro en tercio de octavas
-#    iec61260_filtros(audio_signal,i, sample_rate)
-
 def filtro_promedio_movil(signal, w_size=3):
     '''
     Calcula el promedio en un rango de valores de la señal original dado por w_size y los almacena en un array.
@@ -432,7 +425,7 @@ def filtro_promedio_movil(signal, w_size=3):
 
 
 # Llamar a la función con alguna RI generada anteriormente o cargada.
-señal_audio, sample_rate = sf.read("s1r7.wav")
+señal_audio, sample_rate = sf.read("concert_hall_york_university//rir_jack_lyons_lp1_96k_mono.wav")
 frecuencias_centrales = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000]
 frecuencias_centrales_tercio = [25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000]
 tipo_de_filtro = "octava" # modificar segun el tipo de filtro que se desea.
