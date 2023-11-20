@@ -1,13 +1,11 @@
 import os
 import numpy as np
 import soundfile as sf
-import wave
 from scipy.signal import find_peaks
 from pydub.playback import play
 from scipy.fft import fft, ifft
 import matplotlib.pyplot as plt
 from pydub import AudioSegment
-import pandas as pd
 from scipy.signal import welch
 import sounddevice as sd
 import time

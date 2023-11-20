@@ -40,7 +40,7 @@ signal, fs = sf.read("señal_filtrada_1000.wav")
 filt_signal = filtro_promedio_movil(signal, w_size)
 filt_signal = sf.write("fpm_test_1000.wav", filt_signal, fs)
 
-def schroeder(p_t, lim=4):
+def schroeder(p_t, lim=5):
     """
     Calcula la integral de Schroeder.
     Parameters:
