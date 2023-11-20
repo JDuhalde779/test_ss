@@ -9,12 +9,67 @@ import matplotlib.pyplot as plt
 from pydub import AudioSegment
 import pandas as pd
 from scipy.signal import welch
-#import sounddevice as sd
+import sounddevice as sd
 import time
 import scipy.io.wavfile as wav
 import scipy.signal as signal
 
+def grabar_señal(señal, disp_entrada, disp_salida, duracion):
+    """
+    Reproducción y grabación de una señal en formato ".wav" en simultáneo.
 
+    Parámetros
+    ----------
+    signal: Archivo ".wav"
+
+    disp_entrada: int
+        Dispositivo de grabación de audio.
+    
+    disp_salida: int
+        Dispositivo de reproducción de audio.
+
+    duracion: 
+        Tiempo de grabación de la señal.
+
+    Para ver el listado de dispositivos de audio: 
+    
+    import sounddevice as sd
+    sd.query_devices()
+        
+    Ejemplo
+    -------
+    import numpy as np
+    import soundfile as sf
+    import sounddevice as sd
+    
+    señal = 'SineSweepLog.wav'
+    disp_entrada = 1
+    disp_salida = 9
+    grabar_señal(señal, disp_entrada, disp_salida)
+    
+    """
+    
+    # Selección de dispositivos de audio
+    sd.default.device = disp_entrada, disp_salida
+    # Reproducción de la señal y grabación en simultáneo   
+    data, fs = sf.read(señal, dtype='float32')
+    samples_rec = duracion*fs
+    val = data[0:samples_rec]
+    inicio = time.time()
+    grabacion_señal = sd.playrec(val, fs, channels=1)
+    sd.wait()
+    final = time.time() 
+    latencia = final - inicio
+    latencia_real = latencia - duracion
+    print("Latencia: ", latencia_real)
+    sf.write('signal_recording.wav', grabacion_señal,fs )  # Guardo el archivo .wav
+
+    return grabacion_señal
+
+
+señal = 'sine_sweep_log.wav'
+
+grabar_señal(señal,8,8,5)
 
 
 
