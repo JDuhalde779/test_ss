@@ -17,6 +17,8 @@ from funciones_aparte import plot_dominio_temporal
 from funciones_aparte import stereo_a_mono_wav
 from funciones_aparte import iec61260_filtros
 from funciones_aparte import acortar_wav
+from scipy.signal.windows import hamming
+
 
 t=10
 duracion = 5  # Duración del sine sweep en segundos
@@ -80,6 +82,7 @@ def ruidoRosa_voss(t,ncols=16,fs=44100):
 # Genera el ruido rosa y lo almacena en 'audio'
 ruido_rosa = ruidoRosa_voss(t, ncols=16, fs=44100)
 def normalizado_audio(ruido_rosa):
+
      
     ## Normalizado
     valor_max = max(abs(max(ruido_rosa)),abs(min(ruido_rosa)))
@@ -169,10 +172,17 @@ sine_sweep = generar_sine_sweep_y_inversa(duracion, frec_comienzo, frec_final, f
 # Guarda el Sine Sweep como archivo de audio .wav
 sf.write('sine_sweep_log.wav', sine_sweep, fs)
 
-#VA ACA
 
    
 def cargar_archivos_de_audio(directorio):
+    """
+    Carga los archivos de audio .wav en un directorio y devuelve una lista con sus rutas.
+    Parameters:
+    directorio (str): Ruta al directorio que contiene los archivos de audio.
+    Returns:
+    list: Lista con las rutas de los archivos de audio.
+    """
+
     archivos_de_audio = []
 
     # Verifica si el directorio existe
@@ -216,6 +226,17 @@ stereo_a_mono_wav(archivo_seleccionado)
 
 
 def generar_respuesta_al_impulso(T60_lista, frecuencias_lista, duracion, archivo_salida):
+    """
+    Genera una respuesta al impulso a partir de una lista de T60 y frecuencias centrales.
+    Parametros:
+    T60_lista (list): Lista de T60 para cada frecuencia.
+    frecuencias_lista (list): Lista de frecuencias centrales.
+    duracion (float): Duración en segundos.
+    archivo_salida (str): Nombre del archivo de salida.
+    Returns:
+    None
+    """
+
     # Número de muestras
     fs = 44100  # Frecuencia de muestreo (puedes ajustarla)
     n_muestras = int(fs * duracion)
@@ -256,6 +277,15 @@ nombre_archivo = 'respuesta_al_impulso.wav'  # Nombre del archivo de salida
 #play(AudioSegment.from_wav(nombre_archivo))
 
 def respuesta_al_impulso(sine_sweep_wav, filtro_inverso_wav, salida_wav):
+    """
+    Genera la respuesta al impulso a partir de un sine sweep y su filtro inverso.
+    Parameters:
+    sine_sweep_wav (str): Ruta al archivo de audio del sine sweep (formato .wav).
+    filtro_inverso_wav (str): Ruta al archivo de audio del filtro inverso (formato .wav).
+    salida_wav (str): Ruta al archivo de audio de salida (formato .wav).
+    Returns:
+    None
+    """
     # Cargar los archivos .wav
     sine_sweep, fs_sine_sweep = sf.read(sine_sweep_wav)
     filtro_inverso, fs_filtro_inverso = sf.read(filtro_inverso_wav)
@@ -296,13 +326,9 @@ def convertir_audio_a_escala_logaritmica(señal_audio):
 
     Retorna:
     numpy.ndarray: El array de la señal en escala logarítmica.
-    """
-    # Cargar el archivo de audio .wav
-    tasa_muestreo, audio_data = wav.read(señal_audio)
-    
-
+    """     
     # Normalizar los valores de audio entre -1 y 1
-    audio_data = audio_data.astype(np.float32) / 32767.0
+    audio_data = señal_audio / np.max(np.abs(señal_audio))
     epsilon = 1e-10
 
     # Aplicar la conversión logarítmica
@@ -311,7 +337,7 @@ def convertir_audio_a_escala_logaritmica(señal_audio):
     return audio_log
 
 
-señal_audio = "concert_hall_york_university\\rir_jack_lyons_lp1_96k_mono.wav"
+señal_audio, fs = sf.read("concert_hall_york_university\\rir_jack_lyons_lp1_96k_mono.wav")
 audio_log = convertir_audio_a_escala_logaritmica(señal_audio)
 
 
@@ -378,25 +404,24 @@ def filtro_promedio_movil(input_signal, output_file, L, sample_rate):
     sf.write(output_file, filtered_signal, sample_rate)
 
 
-# Llamar a la función con alguna RI generada anteriormente.
-#audio_signal, sample_rate = sf.read('\Users\Educacion\Desktop\Test funcion filtrosruidoRosa.wav')
-audio_signal, sample_rate = sf.read("concert_hall_york_university\\rir_jack_lyons_lp1_96k_mono.wav")
+# Llamar a la función con alguna RI generada anteriormente o cargada.
+señal_audio, sample_rate = sf.read("concert_hall_york_university\\rir_jack_lyons_lp1_96k_mono.wav")
 frecuencias_centrales = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000]
 frecuencias_centrales_tercio = [25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000]
-tipo_de_filtro = "octava"
+tipo_de_filtro = "octava" # modificar segun el tipo de filtro que se desea.
 # Crear un diccionario para almacenar las señales filtradas
-signals = {}
-print (signals)
+señales = {}
+print (señales)
 
 # Iterar sobre las frecuencias centrales y aplicar los filtros
 for center_frequency in frecuencias_centrales:
-    filtered_signal = iec61260_filtros(audio_signal, center_frequency, tipo_de_filtro, sample_rate)
-    signals[center_frequency] = filtered_signal
+    filtered_signal = iec61260_filtros(señal_audio, center_frequency, tipo_de_filtro, sample_rate)
+    señales[center_frequency] = filtered_signal
 
 # Aplicar el filtro de promedio móvil y guardar las señales filtradas
 L = 100  # Número de muestras para el promedio móvil
 
-for center_frequency, filtered_signal in signals.items():
+for center_frequency, filtered_signal in señales.items():
     output_file = f"salida_filtrada_{center_frequency}_fpm.wav"
     filtro_promedio_movil(filtered_signal, output_file, L, sample_rate)
 
@@ -438,6 +463,12 @@ def calcular_schroeder_integral(p_t, lim=4):
     Returns:
     numpy.ndarray: El array de la integral de Schroeder.
     """
+    # Tomar solo los primeros 4 segundos de la señal
+    p_t = p_t[:int(lim * fs)]
+
+    # Aplicar ventana de Hamming
+    window = hamming(len(p_t))
+    p_t = p_t * window
     # Verificar que no haya valores nan o inf en la respuesta al impulso
     if np.isnan(p_t).any() or np.isinf(p_t).any():
         raise ValueError("La respuesta al impulso contiene valores no numéricos.")
@@ -463,29 +494,6 @@ sf.write("Audio_Schroeder.wav", integral_schroeder, 44100)
 print("longitud de la señal:", len(p_t))
 print("longitud de schroeder", len(integral_schroeder))
 print(integral_schroeder)
-
-
-"""
-# Crear el arreglo de tiempo
-tau = np.arange(0, len(signal))
-# Graficar la señal original y la integral de Schroeder
-plt.subplot(2, 1, 1)
-plt.plot(tau, signal, label='Respuesta al Impulso Suavizada')
-plt.title('Señal Original')
-plt.xlabel('Tiempo')
-plt.ylabel('Amplitud')
-plt.legend()
-plt.subplot(2, 1, 2)
-plt.plot(tau, integral_schroeder, label='Integral de Schroeder')
-plt.title('Integral de Schroeder')
-plt.xlabel('Tiempo')
-plt.ylabel('Amplitud (dB)')
-plt.legend()
-plt.tight_layout()
-plt.show()
-
-"""
-
 
 
 def plot_dominio_temporal2(señal1, señal2, fs=44100, inicio=None, duracion=None, umbral_amplitud=None):
@@ -544,26 +552,8 @@ def plot_dominio_temporal2(señal1, señal2, fs=44100, inicio=None, duracion=Non
 
 
 
-
-def convertir_audio_a_escala_logaritmica2(señal_audio):
-    """
-    Convierte un archivo de audio en escala logarítmica y devuelve el resultado como un array.
-
-    Parámetros:
-    señal_audio (np.array): Array de la señal de audio.
-
-    Retorna:
-    numpy.ndarray: El array de la señal en escala logarítmica.
-    """
-    # Normalizar los valores de audio entre -1 y 1
-    audio_data = señal_audio.astype(np.float32) / np.max(np.abs(señal_audio))
-
-    # Aplicar la conversión logarítmica
-    audio_log = 20 * np.log10(np.abs(audio_data))
-
-    return audio_log
-# Normaliza la señal
-normalized_audio = convertir_audio_a_escala_logaritmica2(p_t)
+# Normalizado y ploteo de la señal
+normalized_audio = convertir_audio_a_escala_logaritmica(p_t)
 plot_dominio_temporal2(normalized_audio, integral_schroeder, fs=44100)
 
 def calcular_edt(schroeder, fs):
