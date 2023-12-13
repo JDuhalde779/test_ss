@@ -1,5 +1,4 @@
-# test_ss
-Mi primer repo.
+# RT60
+Mi primer repositorio.
 
 
-Y ahora estoy escribiendo las primeras lineas
